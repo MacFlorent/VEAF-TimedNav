@@ -1,0 +1,24 @@
+{
+  "variableForMetar": "METAR",
+  "moments": [
+    {
+      "night" : 7200,
+      "dawn" : 19800,
+      "morning" : 23400,
+      "day" : 54000,
+      "evening" : 68400
+    }
+  ],
+  "targets": [
+    {
+      "version": "morning-real",
+      "realweather": true,
+      "moment": "morning"
+    },
+    {
+      "version": "evening-broken",
+      "weatherfile": "broken-1.lua",
+      "moment": "evening"
+    }
+  ]
+}

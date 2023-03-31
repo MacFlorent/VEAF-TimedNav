@@ -1,0 +1,129 @@
+local Id = "Mission"
+local function LogError(oLog) Fg.LogError(oLog, Id) end
+local function LogInfo(oLog) Fg.LogInfo(oLog, Id) end
+local function LogDebug(oLog) Fg.LogDebug(oLog, Id) end
+
+_SETTINGS:SetPlayerMenuOff()
+
+LogInfo("")
+LogInfo("Random flights generation")
+
+local airportsCiv = 
+{
+AIRBASE.Syria.Megiddo,
+AIRBASE.Syria.Haifa,
+AIRBASE.Syria.Rosh_Pina,
+AIRBASE.Syria.Damascus,
+AIRBASE.Syria.Beirut_Rafic_Hariri,
+AIRBASE.Syria.Palmyra,
+AIRBASE.Syria.Aleppo,
+AIRBASE.Syria.Bassel_Al_Assad,
+AIRBASE.Syria.Hatay,
+AIRBASE.Syria.Gaziantep,
+AIRBASE.Syria.Adana_Sakirpasa,
+AIRBASE.Syria.Incirlik
+}
+local airportsBlue = 
+{
+AIRBASE.Syria.Khalkhalah,
+AIRBASE.Syria.Rayak,
+AIRBASE.Syria.King_Hussein_Air_College,
+AIRBASE.Syria.Jirah,
+AIRBASE.Syria.Ramat_David,
+AIRBASE.Syria.H4,
+AIRBASE.Syria.Megiddo
+}
+
+-- neutral civilian flights
+local parameters = 
+{
+	["SpawnDelayMin"] = 10,
+	["SpawnDelayMax"] = 120,
+	["SpawnIntervalMin"] = 60,
+	["SpawnIntervalMax"] = 300,
+	["DepartureAirports"] = airportsCiv,
+	["DepartureZones"] = "RFG_ZONE",
+	["Destinations"] = airportsCiv
+}
+FgRfg.Generate(coalition.side.NEUTRAL, math.random(12, 20), parameters)
+
+-- blue flights
+local parameters = 
+{
+	["SpawnDelayMin"] = 10,
+	["SpawnDelayMax"] = 120,
+	["SpawnIntervalMin"] = 60,
+	["SpawnIntervalMax"] = 300,
+	["DepartureAirports"] = airportsBlue,
+	["DepartureZones"] = "RFG_ZONE",
+	["Destinations"] = airportsBlue
+}
+FgRfg.Generate(coalition.side.BLUE, math.random(3, 6), parameters)
+
+-- blue flights start @ player
+local parameters = 
+{
+	["AirStartPercent"] = 0,
+	["SpawnDelayMin"] = 2,
+	["SpawnDelayMax"] = 4,
+	["SpawnIntervalMin"] = 60,
+	["SpawnIntervalMax"] = 300,
+	["DepartureAirports"] = {AIRBASE.Syria.Incirlik},
+	["Destinations"] = airportsBlue
+}
+FgRfg.Generate(coalition.side.BLUE, math.random(3, 4), parameters)
+
+-- blue flights arrive @ player
+local parameters = 
+{
+	["AirStartPercent"] = 100,
+	["SpawnDelayMin"] = 1,
+	["SpawnDelayMax"] = 1,
+	["SpawnIntervalMin"] = 60,
+	["SpawnIntervalMax"] = 300,
+	["DepartureZones"] = "RFG_ZONE",
+	["Destinations"] = AIRBASE.Syria.Incirlik
+}
+FgRfg.Generate(coalition.side.BLUE, math.random(2, 3), parameters)
+
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+---  Timed navigation
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+local navGroupNames = { "Astro-Hawg", "Nickel-Tusk(hot)", "Archer-Uzi", "Arctic-Colt(hot)", "Tester-A10", "Tester-F18" }
+local sStartZoneName = "Start zone"
+local iWpZoneRadius = 2500
+local iLastStage = 4
+local destinations = {AIRBASE.Syria.Ramat_David, AIRBASE.Syria.H4, AIRBASE.Syria.King_Hussein_Air_College, AIRBASE.Syria.Megiddo}
+local iRefuelEndStage = 4 -- this is the stage before which the refuel will take place. If refuel stage is 3, then the refuel will take place between stages 2 and 3
+local sRefuelEndZoneName = "End refuel zone"
+local additionnalInfos =
+{
+	--0
+	["Minakh airbase"] = "High value transport reported to depart from the airbase by helicopter.",
+	["Al-Rai town"] = "Ground personnel are reported to stock military equipment in the city center.",
+	--1
+	["Salt lake parking"] = "Large concentration of military equipment parked in a dry area of the lake.",
+	["Jirah dam"] = "Small armed boats anchored in the river near the dam.",
+	["Military research base"] = "Some kind of radar equipement has been installed on the site.",
+	--2
+	["Desert FARP"] = "Military helicopter FARP installed along a dirt road.",
+	["Suruj roadblock"] = "A roadblock installed in the middle of the town of Suruj.",
+	["Wadi Shatnat"] = "SAM site in the desert near the wadi.",
+	--3
+	["Tartus port"] = "Attack submarines spotted in the commercial port.",
+	["Jihar industrial zone"] = "Chemical tanks and processing facility.",
+	["Homs highway"] = "Artillery units stopped alongside the highway.",
+	--4
+	["Dark rock"] = "Oil derricks on top of the mountain.",
+	["Kiryat"] = "Airshow on the airfield.",
+	["As Sawara"] = "Forest fire east of the town."
+}
+-----------------------
+
+LogInfo("Weather menu initialization")
+FgWeatherMenu.Start()
+
+LogInfo("Timed navigation initialization")
+FgTn.Start(navGroupNames, sStartZoneName, iWpZoneRadius, iLastStage, destinations, iRefuelEndStage, sRefuelEndZoneName, additionnalInfos)
