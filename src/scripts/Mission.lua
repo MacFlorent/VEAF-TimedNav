@@ -3,6 +3,13 @@ local function LogError(oLog) Fg.LogError(oLog, Id) end
 local function LogInfo(oLog) Fg.LogInfo(oLog, Id) end
 local function LogDebug(oLog) Fg.LogDebug(oLog, Id) end
 
+local Debug = false
+if (Debug) then
+    Fg.LogLevel = Fg.LogLevels.Debug
+else
+    Fg.LogLevel = Fg.LogLevels.Error
+end
+
 _SETTINGS:SetPlayerMenuOff()
 
 LogInfo("")
@@ -91,34 +98,38 @@ FgRfg.Generate(coalition.side.BLUE, math.random(2, 3), parameters)
 ---  Timed navigation
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
-local navGroupNames = { "Astro-Hawg", "Nickel-Tusk(hot)", "Archer-Uzi", "Arctic-Colt(hot)", "Tester-A10", "Tester-F18" }
-local sStartZoneName = "Start zone"
-local iWpZoneRadius = 2500
-local iLastStage = 4
-local destinations = {AIRBASE.Syria.Ramat_David, AIRBASE.Syria.H4, AIRBASE.Syria.King_Hussein_Air_College, AIRBASE.Syria.Megiddo}
-local iRefuelEndStage = 4 -- this is the stage before which the refuel will take place. If refuel stage is 3, then the refuel will take place between stages 2 and 3
-local sRefuelEndZoneName = "End refuel zone"
-local additionnalInfos =
+local tnParameters = 
 {
-	--0
-	["Minakh airbase"] = "High value transport reported to depart from the airbase by helicopter.",
-	["Al-Rai town"] = "Ground personnel are reported to stock military equipment in the city center.",
-	--1
-	["Salt lake parking"] = "Large concentration of military equipment parked in a dry area of the lake.",
-	["Jirah dam"] = "Small armed boats anchored in the river near the dam.",
-	["Military research base"] = "Some kind of radar equipement has been installed on the site.",
-	--2
-	["Desert FARP"] = "Military helicopter FARP installed along a dirt road.",
-	["Suruj roadblock"] = "A roadblock installed in the middle of the town of Suruj.",
-	["Wadi Shatnat"] = "SAM site in the desert near the wadi.",
-	--3
-	["Tartus port"] = "Attack submarines spotted in the commercial port.",
-	["Jihar industrial zone"] = "Chemical tanks and processing facility.",
-	["Homs highway"] = "Artillery units stopped alongside the highway.",
-	--4
-	["Dark rock"] = "Oil derricks on top of the mountain.",
-	["Kiryat"] = "Airshow on the airfield.",
-	["As Sawara"] = "Forest fire east of the town."
+	NavGroupNames = { "Astro-Hawg", "Nickel-Tusk(hot)", "Archer-Uzi", "Arctic-Colt(hot)", "Tester-A10", "Tester-F18" },
+	EndingAction = nil,
+	StartZoneName = "Start zone",
+	WpZoneRadius = 2500,
+	LastStage = 4,
+	Destinations = {AIRBASE.Syria.Ramat_David, AIRBASE.Syria.H4, AIRBASE.Syria.King_Hussein_Air_College, AIRBASE.Syria.Megiddo},
+	RefuelEndStage = 4, -- this is the stage before which the refuel will take place. If refuel stage is 3, then the refuel will take place between stages 2 and 3
+	RefuelEndZoneName = "End refuel zone",
+	AdditionalData =
+	{
+		--0
+		["Minakh airbase"] = "High value transport reported to depart from the airbase by helicopter.",
+		["Al-Rai town"] = "Ground personnel are reported to stock military equipment in the city center.",
+		--1
+		["Salt lake parking"] = "Large concentration of military equipment parked in a dry area of the lake.",
+		["Jirah dam"] = "Small armed boats anchored in the river near the dam.",
+		["Military research base"] = "Some kind of radar equipement has been installed on the site.",
+		--2
+		["Desert FARP"] = "Military helicopter FARP installed along a dirt road.",
+		["Suruj roadblock"] = "A roadblock installed in the middle of the town of Suruj.",
+		["Wadi Shatnat"] = "SAM site in the desert near the wadi.",
+		--3
+		["Tartus port"] = "Attack submarines spotted in the commercial port.",
+		["Jihar industrial zone"] = "Chemical tanks and processing facility.",
+		["Homs highway"] = "Artillery units stopped alongside the highway.",
+		--4
+		["Dark rock"] = "Oil derricks on top of the mountain.",
+		["Kiryat"] = "Airshow on the airfield.",
+		["As Sawara"] = "Forest fire east of the town."
+	}
 }
 -----------------------
 
@@ -126,4 +137,4 @@ LogInfo("Weather menu initialization")
 FgWeatherMenu.Start()
 
 LogInfo("Timed navigation initialization")
-FgTn.Start(navGroupNames, sStartZoneName, iWpZoneRadius, iLastStage, destinations, iRefuelEndStage, sRefuelEndZoneName, additionnalInfos)
+FgTn.Start(tnParameters)

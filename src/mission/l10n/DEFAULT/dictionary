@@ -7,24 +7,23 @@ dictionary = {
     ["DictKey_ActionText_25"] = "return VEAF_DYNAMIC_PATH~=nil",
     ["DictKey_ActionText_27"] = "return VEAF_DYNAMIC_PATH==nil",
     ["DictKey_ActionText_43"] = "return VEAF_DYNAMIC_PATH~=nil",
-    ["DictKey_descriptionBlueTask_3"] = "Multiple locations need to be observed. They will be assigned in sequence to your flight with a short description and a required time on target.\
-For each of these locations, you are to visually confirm the intel given and then move to the next one.\
-\
-Takeoff from Incirlik and go to waypoint#1 to get your first reconnaissance destination.\
-\
-You will be notified of when a pause in the mission flow is possible to join with Teaxaco if you need it.\
-\
-Upon reaching the last location, you will be tasked to land at an airbase in Israel or Jordan.\
-\
-Have good flight.",
+    ["DictKey_descriptionBlueTask_3"] = "",
     ["DictKey_descriptionNeutralsTask_4"] = "",
     ["DictKey_descriptionRedTask_2"] = "",
-    ["DictKey_descriptionText_1"] = "Timed navigation.\
+    ["DictKey_descriptionText_1"] = "In this mission you will have to fly a sequence of random waypoints while respecting required times on target.\
+This is only for reconnaissance. No engagement is authorized, no threats are reported.\
 \
-In this mission you will have to fly a sequence of random waypoints while respecting required times on target.\
-This is only for reconnaissance. No engagement is authorized, and no threats are reported.\
+Multiple locations have to be observed. They will be assigned in sequence to your flight with a short description and a required time on target.\
+For each of these locations, you are to visually confirm the intel given and then move to the next one.\
+\
+Takeoff from Incirlik and go to WP#1 to get your first reconnaissance destination.\
+A pause in the mission flow after WP#3 will allow you to rejoin with Texaco if you need it.\
+Upon reaching the last location, you will be tasked to land at an airbase in Israel or Jordan.\
+\
+Have good flight.\
 \
 Texaco 290.1Mhz U17 - TCN55X\
-Additional options available in F10 menu / Timed navigation and Weather.",
-    ["DictKey_sortie_5"] = "Timed navigation",
+Additional options available in F10 menu: Timed navigation and Weather.\
+Check you kneeboard as well.",
+    ["DictKey_sortie_5"] = "Timed navigation over Syria",
 } -- end of dictionary

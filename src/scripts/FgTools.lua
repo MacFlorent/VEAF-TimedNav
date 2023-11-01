@@ -2,18 +2,8 @@
 General and miscellaneous odd tools form mission management
 
 Requires :
-- Moose 
+- Moose
 ]]
-
--- LogInfo("MISSION >>>>>>")
--- LogInfo(Fg.ToString(env.mission, nil, 1))
--- LogInfo("DESCTEXT >>>>>>")
--- LogInfo(Fg.ToString(env.mission.descriptionText))
--- LogInfo("BLUETASK >>>>>>")
--- LogInfo(Fg.ToString(env.mission.DescriptionBlueTask))
---LogInfo("WEATHER >>>>>>")
---LogInfo(Fg.ToString(env.mission.weather))
-
 
 local Id = "FgTools"
 Fg = {}
@@ -76,6 +66,35 @@ function Fg.AppendWithSeparator(s, sAppend, sSeparator)
     end
 end
 
+function Fg.GetKeyString(table, oValue)
+
+    for key, value in pairs(table) do
+      if value==oValue then
+        return key
+      end
+    end
+  
+    return nil
+end
+
+function Fg.GetRandomEnumValue(enumTable)
+    local flatTable = {}
+
+    for _, oValue in pairs (enumTable) do
+        table.insert(flatTable, oValue)
+    end
+
+    return flatTable [math.random(#flatTable)]
+end
+
+function Fg.Contains(table, element)
+    for _, e in pairs(table) do
+        if e == element then 
+            return true 
+        end
+    end
+    return false
+end
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 ---  Logs
@@ -93,7 +112,12 @@ function Fg.Log(iLogLevel, oLog, sId)
         return
     end
 
-    local sPrefix = ">>> " .. iLogLevel .. " > "
+    local sLogLevel = "???"
+    if (iLogLevel == Fg.LogLevels.Error) then sLogLevel = "ERR"
+    elseif (iLogLevel == Fg.LogLevels.Info) then sLogLevel = "INF"
+    elseif (iLogLevel == Fg.LogLevels.Debug) then sLogLevel = "DBG" end
+    
+    local sPrefix = ">>> " .. sLogLevel .. " > "
     if (not Fg.IsNullOrEmpty(sId)) then
         sPrefix = sPrefix .. sId .. " > "
     end
@@ -102,15 +126,15 @@ function Fg.Log(iLogLevel, oLog, sId)
 end
 
 function Fg.LogError(oLog, sId)
-    Fg.Log(Fg.LogLevels.Error, oLog)
+    Fg.Log(Fg.LogLevels.Error, oLog, sId)
 end
 
 function Fg.LogInfo(oLog, sId)
-    Fg.Log(Fg.LogLevels.Info, oLog)
+    Fg.Log(Fg.LogLevels.Info, oLog, sId)
 end
 
 function Fg.LogDebug(oLog, sId)
-    Fg.Log(Fg.LogLevels.Debug, oLog)
+    Fg.Log(Fg.LogLevels.Debug, oLog, sId)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -125,19 +149,18 @@ function Fg.TimeFromAbsSeconds(iAbsSeconds, precision)
 
     local iDayOffset = math.floor(iAbsSeconds / 86400)
     local iHour = math.floor((iAbsSeconds % 86400) / 3600)
-    
+
     local iMinute = 0
     if (precision <= Fg.TimePrecisions.Minute) then
         iMinute = math.floor((iAbsSeconds % 3600) / 60)
     end
-    
+
     local iSecond = 0
-    if (precision <= Fg.TimePrecisions.Second) then    
+    if (precision <= Fg.TimePrecisions.Second) then
         iSecond = math.floor(iAbsSeconds % 60)
     end
 
-    local this =
-    {
+    local this = {
         DayOffset = iDayOffset,
         Day = env.mission.date.Day + iDayOffset,
         Month = env.mission.date.Month,
@@ -165,7 +188,7 @@ function Fg.TimeToString(iAbsSeconds, bWithSeconds)
     if (bWithSeconds == nil) then
         bWithSeconds = true
     end
-    
+
     if (bWithSeconds) then
         return string.format("%02d:%02d:%02d", oTime.Hour, oTime.Minute, oTime.Second)
     else
@@ -175,12 +198,30 @@ end
 
 function Fg.TimeToStringDate(iAbsSeconds, bWithSeconds)
     local oTime = Fg.TimeFromAbsSeconds(iAbsSeconds)
-    return string.format("%02d/%02d/%d %s", oTime.Day, oTime.Month, oTime.Year, Fg.TimeToString(iAbsSeconds, bWithSeconds))
+    return string.format(
+        "%02d/%02d/%d %s",
+        oTime.Day,
+        oTime.Month,
+        oTime.Year,
+        Fg.TimeToString(iAbsSeconds, bWithSeconds)
+    )
 end
 
 function Fg.TimeToStringMetar(iAbsSeconds)
     local oTime = Fg.TimeFromAbsSeconds(iAbsSeconds)
     return string.format("%02d%02dZ", oTime.Hour, oTime.Minute)
+end
+
+function Fg.TimeSunriseSunset(mooseCoord, iDayOfYear)
+    if (iDayOfYear == nil) then
+        iDayOfYear = UTILS.GetMissionDayOfYear()
+    end
+
+    local iLatitude, iLongitude = mooseCoord:GetLLDDM()
+    local iSunrise = UTILS.GetSunRiseAndSet(iDayOfYear, iLatitude, iLongitude, true, UTILS.GMTToLocalTimeDifference())
+    local iSunset = UTILS.GetSunRiseAndSet(iDayOfYear, iLatitude, iLongitude, false, UTILS.GMTToLocalTimeDifference())
+
+    return iSunrise, iSunset
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -235,6 +276,11 @@ function Fg.GetUnitDescription(dcsUnit)
     return sString
 end
 
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+---  Country and airbases
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 function Fg.GetCountryShortName(iId)
     if (iId and iId > 0) then
         for _, countryData in pairs(country.by_country) do
@@ -245,34 +291,14 @@ function Fg.GetCountryShortName(iId)
     end
 end
 
-function Fg.CreateVeafPointFromAirbase(sAirbaseName)
-    local mooseAirbase = AIRBASE:FindByName(sAirbaseName)
-    local mooseRunways = mooseAirbase:GetRunwayData()
 
-    local veafPoint = {}
-    --veafPoint.tower = "TOWER"
-    veafPoint.x = mooseAirbase:GetVec3().x
-    veafPoint.y = mooseAirbase:GetVec3().y
-    veafPoint.z = mooseAirbase:GetVec3().z
-    veafPoint.atc = true
-
-    veafPoint.runways = {}
-    for _, r in pairs(mooseRunways) do
-        local veafRunway = {name = r.idx, hdg = math.floor(r.heading + 0.5)}
-        table.insert(veafPoint.runways, veafRunway)
-    end
-
-    veafNamedPoints._addPoint(mooseAirbase.AirbaseName, veafPoint)
-    veafNamedPoints._refreshAtcRadioMenu()
-    veafNamedPoints._refreshWeatherReportsRadioMenu()
-end
 
 function Fg.GetNearestAirbaseList(mooseGroup, iCount)
     local groupCoordinates = mooseGroup:GetCoordinate()
     local iMinDistance = nil
     local nearestList = {}
 
-    local function Sort (a, b)
+    local function Sort(a, b)
         if (a == nil and b == nil) then
             return false
         elseif (a == nil) then
@@ -285,34 +311,36 @@ function Fg.GetNearestAirbaseList(mooseGroup, iCount)
     end
 
     for _, ab in pairs(AIRBASE.GetAllAirbases()) do
-        local iDistance = groupCoordinates:Get2DDistance(ab:GetCoordinate())
-        local bDone = false
+        if (not ab:IsShip()) then
+            local iDistance = groupCoordinates:Get2DDistance(ab:GetCoordinate())
+            local bDone = false
 
-        -- first fill the nil positions
-        for i = 1, iCount, 1 do
-            if (nearestList[i] == nil) then
-                nearestList[i] = { ab.AirbaseName, iDistance }
-                bDone = true
-                break                
-            end
-        end
-
-        if (not bDone) then
-            -- then, replace the farthest one if the current one is closer 
-            for i = iCount, 1, -1 do
-                if (iDistance < nearestList[i][2]) then
-                    nearestList[i] = { ab.AirbaseName, iDistance }
+            -- first fill the nil positions
+            for i = 1, iCount, 1 do
+                if (nearestList[i] == nil) then
+                    nearestList[i] = {ab.AirbaseName, iDistance}
                     bDone = true
-                    break                
+                    break
                 end
             end
-        end
 
-        if (bDone) then
-            table.sort(nearestList, Sort)
+            if (not bDone) then
+                -- then, replace the farthest one if the current one is closer
+                for i = iCount, 1, -1 do
+                    if (iDistance < nearestList[i][2]) then
+                        nearestList[i] = {ab.AirbaseName, iDistance}
+                        bDone = true
+                        break
+                    end
+                end
+            end
+
+            if (bDone) then
+                table.sort(nearestList, Sort)
+            end
         end
     end
-    
+
     return nearestList
 end
 
@@ -333,4 +361,72 @@ function Fg.GetNearestAirbaseName(mooseGroup)
     else
         return nil
     end
+end
+
+function Fg.FlareRunway(mooseAirbase, iMinDistance, flareColors, iRepetitions)
+    iMinDistance = iMinDistance or 100
+    iRepetitions = iRepetitions or 1
+    if (flareColors == nil or #flareColors <= 0) then
+        flareColors = { FLARECOLOR.White, FLARECOLOR.Yellow, FLARECOLOR.Red, FLARECOLOR.Green }
+    end
+
+    local runwayData = mooseAirbase:GetRunwayData()
+
+    if (runwayData and #runwayData == 2) then
+        local coord1 = runwayData[1].position:GetCoordinate()
+        local coord2 = runwayData[2].position:GetCoordinate()
+        local coordTable = {coord1, coord2}
+        
+        local function AddMedCoord(coordTable, coord1, coord2, iMinDistance)
+            local iDistance = coord1:Get2DDistance(coord2)
+            --LogDebug ("AddMedCoord - iDistance=" .. iDistance .. " - iMinInterval=" .. iMinInterval)
+            if (iDistance < iMinDistance) then
+                return
+            else
+                local medCoord = coord1:GetIntermediateCoordinate(coord2)
+                table.insert(coordTable, medCoord)
+                AddMedCoord(coordTable, coord1, medCoord, iMinDistance)
+                AddMedCoord(coordTable, medCoord, coord2, iMinDistance)
+            end
+        end
+
+        AddMedCoord(coordTable, coord1, coord2, iMinDistance)
+
+        local flareScheduler = SCHEDULER:New( nil, 
+        function()
+            local flareColor = flareColors [math.random(#flareColors)]
+            Fg.LogDebug("FLARING " .. timer.getAbsTime() .. " " .. flareColor)
+
+            for _, c in pairs(coordTable) do
+                c:Flare(flareColor)
+            end
+        end, {}, 0, 1, nil, iRepetitions)     
+    end
+end
+
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+---  VEAF
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+function Fg.CreateVeafPointFromAirbase(sAirbaseName)
+    local mooseAirbase = AIRBASE:FindByName(sAirbaseName)
+    local mooseRunways = mooseAirbase:GetRunwayData()
+
+    local veafPoint = {}
+    --veafPoint.tower = "TOWER"
+    veafPoint.x = mooseAirbase:GetVec3().x
+    veafPoint.y = mooseAirbase:GetVec3().y
+    veafPoint.z = mooseAirbase:GetVec3().z
+    veafPoint.atc = true
+
+    veafPoint.runways = {}
+    for _, r in pairs(mooseRunways) do
+        local veafRunway = {name = r.idx, hdg = math.floor(r.heading + 0.5)}
+        table.insert(veafPoint.runways, veafRunway)
+    end
+
+    veafNamedPoints._addPoint(mooseAirbase.AirbaseName, veafPoint)
+    veafNamedPoints._refreshAtcRadioMenu()
+    veafNamedPoints._refreshWeatherReportsRadioMenu()
 end

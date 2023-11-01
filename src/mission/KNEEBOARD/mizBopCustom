@@ -1,0 +1,143 @@
+{
+  "PreferencesMap": {
+    "ProviderName": "ArcGIS_World_Topo_Map",
+    "Zoom": 9.0
+  },
+  "MapData": {
+    "CenterLatitude": 34.40690965652058,
+    "CenterLongitude": 36.287841796875,
+    "Zoom": 7.0,
+    "CustomMarkers": []
+  },
+  "MizBopCoalitions": [
+    {
+      "CoalitionName": "red",
+      "BullseyeDescription": "",
+      "BullseyeWaypoint": 0,
+      "MapData": {
+        "CenterLatitude": 35.29190677261514,
+        "CenterLongitude": 40.153812696021006,
+        "Zoom": 9.0,
+        "CustomMarkers": []
+      }
+    },
+    {
+      "CoalitionName": "blue",
+      "BullseyeDescription": "",
+      "BullseyeWaypoint": 0,
+      "MapData": {
+        "CenterLatitude": 37.01560006992313,
+        "CenterLongitude": 35.448194580575105,
+        "Zoom": 9.0,
+        "CustomMarkers": []
+      }
+    },
+    {
+      "CoalitionName": "neutrals",
+      "BullseyeDescription": "",
+      "BullseyeWaypoint": 0,
+      "MapData": {
+        "CenterLatitude": 33.807200986339836,
+        "CenterLongitude": 35.486113328793294,
+        "Zoom": 9.0,
+        "CustomMarkers": []
+      }
+    }
+  ],
+  "MizBopAirbases": [],
+  "MizBopGroups": [],
+  "MizBopUnits": [],
+  "MizBopRoutePoints": [],
+  "BopBriefingFolders": [
+    {
+      "Guid": "c5f9768e-eb12-4ac8-97c1-cca0fa222e65",
+      "Name": "Main",
+      "Kneeboards": [],
+      "CoalitionName": "blue",
+      "WeatherDisplay": 1,
+      "MeasurementSystem": 2,
+      "CoordinateDisplay": 7,
+      "HtmlCssStyle": "simple-light",
+      "ImageSize": "720, 1085",
+      "Inactive": false,
+      "Pages": [
+        {
+          "Guid": "75b4ec78-6e90-4480-9a94-30fef3a14236",
+          "Title": "Operations",
+          "DisplayTitle": false,
+          "Render": 3,
+          "MapIncludeBaseOverlays": true,
+          "HtmlFontSize": 16,
+          "Parts": [
+            {
+              "Guid": "a85f49ba-9ddd-4b87-bcc5-0fb0e0602063",
+              "PartType": 2
+            },
+            {
+              "Weather": true,
+              "Bullseye": false,
+              "BullseyeWithDescription": false,
+              "Guid": "644d81b5-105a-445b-8f77-633e6c5d20cd",
+              "PartType": 10
+            },
+            {
+              "Header": "",
+              "Airbases": [
+                {
+                  "Id": 16,
+                  "AirbaseType": 1
+                },
+                {
+                  "Id": 30,
+                  "AirbaseType": 1
+                },
+                {
+                  "Id": 19,
+                  "AirbaseType": 1
+                },
+                {
+                  "Id": 24,
+                  "AirbaseType": 1
+                }
+              ],
+              "SelectedColumns": [
+                "Name",
+                "Radio",
+                "Notes"
+              ],
+              "Guid": "c798f0db-b05c-4db1-b069-986ef961f1ea",
+              "PartType": 5
+            },
+            {
+              "PartGroupType": 1,
+              "Header": "",
+              "GroupOrUnits": [
+                {
+                  "Id": 2,
+                  "Object": "group"
+                }
+              ],
+              "SelectedTableColumns": [
+                "Name/type",
+                "Radio",
+                "Notes"
+              ],
+              "Guid": "bab24f24-7272-48b7-8c48-5fbf7aebba41",
+              "PartType": 6
+            },
+            {
+              "Guid": "7adfa239-9eca-44f4-817c-ecfda2e00c17",
+              "PartType": 3
+            }
+          ],
+          "MapData": {
+            "CenterLatitude": 34.651285198954135,
+            "CenterLongitude": 36.97998046875,
+            "Zoom": 7.0,
+            "CustomMarkers": []
+          }
+        }
+      ]
+    }
+  ]
+}

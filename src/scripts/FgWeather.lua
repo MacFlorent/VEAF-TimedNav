@@ -1,8 +1,11 @@
 --[[
 Weather informations collection from various sim data
 Generation of weather reports for airfields (ATIS and METAR)
-Menu options for requesting ATIS on any near airfield, and display F10 markers with METAR data on all airbases of the map
+F10 menu options for requesting ATIS on any near airfield, and display/remove map markers with METAR data on all airbases of the map
 
+Usage :
+FgWeatherMenu.Start()
+  
 Requires :
 - Moose
 - FgTools
@@ -77,49 +80,94 @@ local CloudDensityLabelOktas =
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 FgWeatherMenu = {}
+FgWeatherMenu.GroupMenus = {}
+FgWeatherMenu.AtisMenuCommands = {}
 FgWeatherMenu.Scheduler = nil
 FgWeatherMenu.NumberNearestAtis = 5 
-FgWeatherMenu.AtisMenus = {}
 FgWeatherMenu.ActiveMarks = {}
 
-local function MenuOutTextAtis(sGroupName, sAirbaseName)
-	LogDebug("MenuOutTextAtis - " .. sGroupName .. " - " .. sAirbaseName)
-    local mooseGroup = GROUP:FindByName(sGroupName)
-	local sAtis = FgAtis.GetCurrentAtisString(sAirbaseName)
-    trigger.action.outTextForGroup(mooseGroup:GetDCSObject():getID(), sAtis, 45, false)
+FgWeatherMenu.EventHandler = EVENTHANDLER:New()
+FgWeatherMenu.EventHandler:HandleEvent(EVENTS.PlayerEnterAircraft)
+function FgWeatherMenu.EventHandler:OnEventPlayerEnterAircraft(eventData)
+    LogDebug("FgWeatherMenu : player entered " .. eventData.IniGroupName)
+    FgWeatherMenu.BuildMenuGroup(eventData.IniGroup)
 end
 
-local function MenuCreateMarkMetars(sGroupName)
-	LogDebug("MenuCreateMarkMetars - " .. sGroupName)
-    local mooseGroup = GROUP:FindByName(sGroupName)
+function FgWeatherMenu.Start(iInterval, iNumberNearest)
+    iInterval = iInterval or 30
+    FgWeatherMenu.NumberNearest = iNumberNearest or 5
 
-    FgWeatherMenu.RemoveExistingMetarMarks(sGroupName)
+    if (FgWeatherMenu.Scheduler) then
+        LogInfo("Stop weather menu scheduler")
+        FgWeatherMenu.Scheduler:Stop()
+     end
+     LogInfo("Start weather menu scheduler")
+     FgWeatherMenu.Scheduler = SCHEDULER:New(nil, 
+     function()
+        FgWeatherMenu.RefreshAllMenus()
+     end,
+     {},
+     1, iInterval
+     )     
+end
 
-    for _, ab in pairs(AIRBASE.GetAllAirbases()) do
-        local iMarkId = FgWeather.CreateMetarMark(ab:GetCoordinate(), mooseGroup)
-        if (FgWeatherMenu.ActiveMarks [sGroupName] == nil) then
-            FgWeatherMenu.ActiveMarks [sGroupName] = {iMarkId}
+function FgWeatherMenu.BuildMenuGroup(mooseGroup)
+    if (FgWeatherMenu[mooseGroup.GroupName] == nil) then
+        LogDebug("FgWeatherMenu create root " .. mooseGroup.GroupName)
+        FgWeatherMenu[mooseGroup.GroupName] = MENU_GROUP:New(mooseGroup, "Weather")
+        FgWeatherMenu.RefreshMenuGroup(mooseGroup, true)
+    end    
+end
+
+function FgWeatherMenu.RefreshMenuGroup(mooseGroup, bRebuild)
+    bRebuild = bRebuild or false
+
+    local menuGroup = FgWeatherMenu[mooseGroup.GroupName]
+    if (menuGroup == nil) then
+        return
+    end
+
+    LogDebug("FgWeatherMenu refresh for " .. mooseGroup.GroupName)
+    local nearestList = Fg.GetNearestAirbaseListNames(mooseGroup, FgWeatherMenu.NumberNearest)
+
+    if (not bRebuild) then
+        if (FgWeatherMenu.AtisMenuCommands[mooseGroup.GroupName]) then
+            for _, sAbName in pairs (nearestList) do
+                if (not FgWeatherMenu.AtisMenuCommands[mooseGroup.GroupName][sAbName]) then
+                    bRebuild = true
+                    break 
+                end
+            end
         else
-            table.insert (FgWeatherMenu.ActiveMarks [sGroupName], iMarkId)
+            bRebuild = true
         end
     end
-end
 
-local function MenuRemoveMarkMetars(sGroupName)
-    LogDebug("MenuRemoveMarkMetars - " .. sGroupName)
-    local mooseGroup = GROUP:FindByName(sGroupName)
+    if (bRebuild) then
+        LogDebug("FgWeatherMenu rebuild for " .. mooseGroup.GroupName)
+        menuGroup:RemoveSubMenus()
+        
+        FgWeatherMenu.AtisMenuCommands[mooseGroup.GroupName] = {}
+        for _, sAbName in ipairs(nearestList) do
+            MENU_GROUP_COMMAND:New(mooseGroup, "ATIS " .. sAbName, menuGroup, FgWeatherMenu.OutTextAtis, mooseGroup.GroupName, sAbName)
+            FgWeatherMenu.AtisMenuCommands[mooseGroup.GroupName][sAbName] = true
+        end
 
-    FgWeatherMenu.RemoveExistingMetarMarks(sGroupName)
-end
-
-function FgWeatherMenu.GetRootMenu(mooseGroup)
-    if (FgWeatherMenu[mooseGroup.GroupName] == nil) then
-        FgWeatherMenu[mooseGroup.GroupName]  = MENU_MISSION:New("Weather informations")
+        MENU_GROUP_COMMAND:New(mooseGroup, "METAR display on map", menuGroup, FgWeatherMenu.CreateMarkMetars, mooseGroup.GroupName)
+        MENU_GROUP_COMMAND:New(mooseGroup, "METAR remove from map", menuGroup, FgWeatherMenu.RemoveMarkMetars, mooseGroup.GroupName)
     end
-    return FgWeatherMenu[mooseGroup.GroupName]
 end
 
-function FgWeatherMenu.BuildMenuAll()
+function FgWeatherMenu.RefreshAllMenus()
+    LogDebug("FgWeatherMenu RefreshAllMenus")
+    for _, mooseGroup in pairs(_DATABASE.GROUPS) do
+        if (mooseGroup:IsAlive() and #mooseGroup:GetPlayerUnits() >= 1) then
+            FgWeatherMenu.RefreshMenuGroup(mooseGroup)
+        end
+    end
+
+    --DATABASE:ForEachGroup( IteratorFunction, FinalizeFunction, ... )
+    --[[ This method iterates the PLAYER Moose database, which only contains "client" units, but not single "player" unit
     local groupsDone = {}
     
     for _, mooseUnit in pairs(_DATABASE.PLAYERUNITS) do
@@ -135,74 +183,41 @@ function FgWeatherMenu.BuildMenuAll()
             groupsDone[mooseGroup.GroupName] = true
         end
     end
+    ]]
 end
 
-function FgWeatherMenu.BuildMenuGroup(mooseGroup)
-    LogDebug("FgWeatherMenu check for " .. mooseGroup.GroupName)
+function FgWeatherMenu.OutTextAtis(sGroupName, sAirbaseName)
+	LogDebug("MenuOutTextAtis - " .. sGroupName .. " - " .. sAirbaseName)
+    local mooseGroup = GROUP:FindByName(sGroupName)
+	local sAtis = FgAtis.GetCurrentAtisString(sAirbaseName)
+    trigger.action.outTextForGroup(mooseGroup:GetDCSObject():getID(), sAtis, 45, false)
+end
 
-    local bRebuild = false
-    if (FgWeatherMenu[mooseGroup.GroupName] == nil) then
-        FgWeatherMenu[mooseGroup.GroupName]  = MENU_MISSION:New("Weather")
-        bRebuild = true
-    end
-    local menuGroup = FgWeatherMenu.GetRootMenu(mooseGroup)
+function FgWeatherMenu.CreateMarkMetars(sGroupName)
+	LogDebug("MenuCreateMarkMetars - " .. sGroupName)
+    local mooseGroup = GROUP:FindByName(sGroupName)
 
-    local nearestList = Fg.GetNearestAirbaseListNames(mooseGroup, FgWeatherMenu.NumberNearest)
+    FgWeatherMenu.RemoveMarkMetars(sGroupName)
 
-    if (not bRebuild) then
-        if (FgWeatherMenu.AtisMenus[mooseGroup.GroupName]) then
-            for _, sAbName in pairs (nearestList) do
-                if (not FgWeatherMenu.AtisMenus[mooseGroup.GroupName][sAbName]) then
-                    bRebuild = true
-                    break 
-                end
+    for _, ab in pairs(AIRBASE.GetAllAirbases()) do
+        if (ab:GetAirbaseCategory() ~= Airbase.Category.SHIP) then
+            local iMarkId = FgWeather.CreateMetarMark(ab:GetCoordinate(), mooseGroup)
+            if (FgWeatherMenu.ActiveMarks [sGroupName] == nil) then
+                FgWeatherMenu.ActiveMarks [sGroupName] = {iMarkId}
+            else
+                table.insert (FgWeatherMenu.ActiveMarks [sGroupName], iMarkId)
             end
-        else
-            bRebuild = true
         end
-    end
-
-    if (bRebuild) then
-        LogDebug("FgWeatherMenu rebuild for " .. mooseGroup.GroupName)
-        menuGroup:RemoveSubMenus()
-        
-        FgWeatherMenu.AtisMenus[mooseGroup.GroupName] = {}
-        for _, sAbName in ipairs(nearestList) do
-            MENU_GROUP_COMMAND:New(mooseGroup, "ATIS " .. sAbName, menuGroup, MenuOutTextAtis, mooseGroup.GroupName, sAbName)
-            FgWeatherMenu.AtisMenus[mooseGroup.GroupName][sAbName] = true
-        end
-
-        MENU_GROUP_COMMAND:New(mooseGroup, "METAR display on map", menuGroup, MenuCreateMarkMetars, mooseGroup.GroupName)
-        MENU_GROUP_COMMAND:New(mooseGroup, "METAR remove from map", menuGroup, MenuRemoveMarkMetars, mooseGroup.GroupName)
     end
 end
 
-function FgWeatherMenu.RemoveExistingMetarMarks(sGroupName)
+function FgWeatherMenu.RemoveMarkMetars(sGroupName)
     if (FgWeatherMenu.ActiveMarks [sGroupName]) then
         for _, iMarkId in pairs (FgWeatherMenu.ActiveMarks[sGroupName]) do
             trigger.action.removeMark(iMarkId)
         end
         FgWeatherMenu.ActiveMarks [sGroupName] = nil
     end
-end
-
-function FgWeatherMenu.Start(iInterval, iNumberNearest)
-    iInterval = iInterval or 30
-    FgWeatherMenu.NumberNearest = iNumberNearest or 5
-
-    if (FgWeather.SchedulerMenu) then
-        LogInfo("Stop weather menu scheduler")
-        FgWeatherMenu.Scheduler:Stop()
-     end
-     LogInfo("Start weather menu scheduler")
-     FgWeatherMenu.Scheduler = SCHEDULER:New(nil, 
-     function()
-        FgWeatherMenu.BuildMenuAll()
-     end,
-     {},
-     1, iInterval
-     )
-     
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -216,21 +231,24 @@ FgWeather = {}
 FgWeather.__index = FgWeather
 ---------------------------------------------------------------------------------------------------
 ---  CTORS
-function FgWeather:Create(mooseCoord, iTimeAbs)
+function FgWeather:Create(mooseCoord, iTimeAbs, iAltitude)
     iTimeAbs = iTimeAbs or timer.getAbsTime()
     local iGroundAltitude = mooseCoord:GetLandHeight()
-    local iWindDir, iWindSpeedMs = mooseCoord:GetWind()
+    iAltitude = iAltitude or iGroundAltitude + 1 -- check a bit above ground especially for the wind
+    if (iAltitude < iGroundAltitude) then
+        iAltitude = iGroundAltitude
+    end
+   
+    local iWindDir, iWindSpeedMs = mooseCoord:GetWind(iAltitude)
 
-    local iLatitude, iLongitude = mooseCoord:GetLLDDM()
-    local iZuluDiff = UTILS.GMTToLocalTimeDifference()
-    local iDayOfYear = UTILS.GetMissionDayOfYear(iTimeAbs or timer.getAbsTime())
-    local iSunset = UTILS.GetSunRiseAndSet(iDayOfYear, iLatitude, iLongitude, false, iZuluDiff)
+    local iDayOfYear = UTILS.GetMissionDayOfYear(iTimeAbs)
+    local iSunrise, iSunset = Fg.TimeSunriseSunset(mooseCoord, iDayOfYear)
 
     local iVisibilityMeters = env.mission.weather.visibility.distance
     local bFog = env.mission.weather.enable_fog
     if (bFog) then
         -- ground + 75 meters seems to be the point where it can be counted as a real impact on visibility
-        if(env.mission.weather.fog.thickness < iGroundAltitude + 75) then
+        if(env.mission.weather.fog.thickness < iAltitude + 75) then
             bFog = false
         elseif (env.mission.weather.fog.visibility < iVisibilityMeters) then
             iVisibilityMeters = env.mission.weather.fog.visibility
@@ -259,7 +277,7 @@ function FgWeather:Create(mooseCoord, iTimeAbs)
     {
         TimeAbs = iTimeAbs,
         Coordinates = mooseCoord,
-        GroundAltitudeMeter = iGroundAltitude,
+        AltitudeMeter = iAltitude,
         WindDirection = UTILS.Round(iWindDir),
         WindSpeedMs = iWindSpeedMs,
         VisibilityMeters = iVisibilityMeters,
@@ -271,6 +289,7 @@ function FgWeather:Create(mooseCoord, iTimeAbs)
         --DewPoint, -- Magnus Formula, will need humidity to compute
         QnhHpa = mooseCoord:GetPressure(0),
         QfeHpa = mooseCoord:GetPressure(),
+        Sunrise = iSunrise,
         Sunset = iSunset
     }
 
@@ -300,11 +319,27 @@ function FgWeather:GetFormattedWind(bMagnetic)
     return iWindForce, iWindDirection
 end
 
-function FgWeather:GetFormattedClouds()
+function FgWeather:GetCloudBaseAltitudeMeters(bHeight)
+    bHeight = bHeight or false
+    if (self.Clouds == nil or self.Clouds.Density <= 0) then
+        return nil
+    else
+         local iCloudBase = self.Clouds.Base
+         if (bHeight) then
+            iCloudBase = iCloudBase - self.AltitudeMeter
+        end
+
+        return iCloudBase
+    end
+end
+
+function FgWeather:GetFormattedClouds(bHeight)
+    bHeight = bHeight or false
+
     if (self.Clouds == nil or self.Clouds.Density <= 0) then
         return CloudDensityLabel.Clear
     else
-        local iCloudBase = UTILS.Round(UTILS.MetersToFeet(self.Clouds.Base - self.GroundAltitudeMeter) / 100) * 100
+        local iCloudBase = UTILS.Round(UTILS.MetersToFeet(self:GetCloudBaseAltitudeMeters(bHeight)) / 100) * 100
         if (self.VisibilityMeters >= 10000 and iCloudBase >= 5000 and not self.Precipitation and not self.Fog and not self.Dust) then
             return CloudDensityLabel.Cavok
         else
@@ -313,13 +348,30 @@ function FgWeather:GetFormattedClouds()
     end
 end
 
+function FgWeather:GetCarrierCase()
+    local iCloudBase = nil
+    if (self.Clouds and self.Clouds.Density > 4) then
+        iCloudBase = UTILS.Round(UTILS.MetersToFeet(self:GetCloudBaseAltitudeMeters(false)) / 100) * 100
+    end
+
+    LogDebug(string.format("GetCarrierCase - Cloud base=%d feet (need more than 1000 for CASE 2 and 300 for CASE 3) - visibility=%d nm (need more than 5 for CASE 1/2)", iCloudBase or -1, UTILS.MetersToNM (self.VisibilityMeters)))
+
+    if (self.VisibilityMeters > UTILS.NMToMeters(5) and (iCloudBase == nil or iCloudBase > 3000)) then
+        return 1
+    elseif (self.VisibilityMeters > UTILS.NMToMeters(5) and (iCloudBase == nil or iCloudBase > 1000)) then
+        return 2
+    else
+        return 3
+    end
+end
+
 function FgWeather:ToString(bWithClouds)
     bWithClouds = bWithClouds or false
 
     local sString = "Time=" .. Fg.TimeToStringDate(self.TimeAbs)
     sString = sString .. " - Coord=" .. self.Coordinates:ToStringLLDMS() .. " m"
-    sString = sString .. " - Altitude=" .. UTILS.Round(self.GroundAltitudeMeter) .. " m"
-    sString = sString .. " - Wind=" .. self.WindDirection .. "@" .. UTILS.Round(self.WindSpeedMs) .. " ms [decl=" .. UTILS.GetMagneticDeclination() .. "]"
+    sString = sString .. " - Altitude=" .. UTILS.Round(self.AltitudeMeter) .. " m"
+    sString = sString .. string.format(" - Wind= %03d @ %.2f ms [%.2f kts] [decl=%d]", self.WindDirection, self.WindSpeedMs, UTILS.MpsToKnots(self.WindSpeedMs), UTILS.GetMagneticDeclination())
     sString = sString .. " - Visibility=" .. self.VisibilityMeters .. " m"
     if (self.Fog) then
         sString = sString .. " - fog"
@@ -333,6 +385,7 @@ function FgWeather:ToString(bWithClouds)
     sString = sString .. " - Temperature=" .. UTILS.Round(self.TemperatureCelcius) .. " °C"
     sString = sString .. " - Qnh=" .. UTILS.Round(self.QnhHpa) .. " Hpa"
     sString = sString .. " - Qfe=" .. UTILS.Round(self.QfeHpa) .. " Hpa"
+    sString = sString .. " - Sunrise=" .. Fg.TimeToString(self.Sunrise)
     sString = sString .. " - Sunset=" .. Fg.TimeToString(self.Sunset)
 
     if (bWithClouds) then
@@ -369,7 +422,7 @@ function FgWeather:ToStringAtis()
     end
 
     local sClouds
-    local cloudDensity, iCloudBase = self:GetFormattedClouds()
+    local cloudDensity, iCloudBase = self:GetFormattedClouds(true)
     if (cloudDensity == CloudDensityLabel.Clear) then
         sClouds = "No clouds"
     elseif (cloudDensity == CloudDensityLabel.Cavok) then
@@ -394,7 +447,14 @@ function FgWeather:ToStringAtis()
     sAtis = sAtis .. "\nTemperature " .. UTILS.Round(self.TemperatureCelcius) .. " °C"
     sAtis = sAtis .. string.format("\nQNH %d hPa - %.2f inHg", self.QnhHpa, UTILS.hPa2inHg(self.QnhHpa))
     sAtis = sAtis .. string.format("\nQFE %d hPa - %.2f inHg", self.QfeHpa, UTILS.hPa2inHg(self.QfeHpa))
-    sAtis = sAtis .. "\nSunset " .. Fg.TimeToString(self.Sunset, false) .. "Z"
+    
+    if (self.TimeAbs < self.Sunrise or self.TimeAbs > self.Sunset) then
+        local iSunriseZulu = Fg.TimeToZulu(self.Sunrise)
+        sAtis = sAtis .. "\nSunrise " .. Fg.TimeToString(iSunriseZulu, false) .. "Z"
+    else
+        local iSunsetZulu = Fg.TimeToZulu(self.Sunset)
+        sAtis = sAtis .. "\nSunset " .. Fg.TimeToString(iSunsetZulu, false) .. "Z"
+    end
 
     return sAtis
 end
@@ -432,7 +492,7 @@ function FgWeather:ToStringMetar()
     sVisibility = Fg.AppendWithSeparator(sVisibility, sSignificativeWeather)
 
     local sClouds
-    local cloudDensity, iCloudBase = self:GetFormattedClouds()
+    local cloudDensity, iCloudBase = self:GetFormattedClouds(true)
     if (cloudDensity == CloudDensityLabel.Clear) then
         sClouds = "SKC"
     elseif (cloudDensity == CloudDensityLabel.Cavok) then
@@ -510,15 +570,20 @@ function FgAtis:Create(mooseAirbase, sLetter, iZuluHoursSinceMidnight)
         iRecordedAt = iZuluHoursSinceMidnight - math.random(2, 11) / 60
     end
 
-    local mooseRunway = mooseAirbase:GetActiveRunway()
-    local sActiveRunway = string.format("[%02d]", mooseRunway.idx) 
-
     this.Message =
         mooseAirbase.AirbaseName ..
         " information " .. sLetter .. " recorded at " .. Fg.TimeToString(iRecordedAt * 3600, false) .. "Z"
-    this.Message = this.Message .. "\nRunway in use " .. sActiveRunway
-    
-    local weatherReport = FgWeather:Create(mooseAirbase:GetCoordinate())
+
+    local mooseRunway = mooseAirbase:GetActiveRunway()
+    if (mooseRunway) then
+        this.Message = this.Message .. "\nRunway in use " .. mooseRunway.name        
+    end
+
+    local iAltitude = nil
+    if (mooseAirbase:IsShip()) then
+        iAltitude = 20
+    end
+    local weatherReport = FgWeather:Create(mooseAirbase:GetCoordinate(), nil, iAltitude)
     this.Message = this.Message .. "\n" .. weatherReport:ToStringAtis()
 
     setmetatable(this, self)
@@ -539,8 +604,8 @@ function FgAtis.GetCurrentAtisString(sAirbaseName)
         return ""
     end
 
-    local iZulu = Fg.TimeToZulu()
-	local iZuluHoursSinceMidnight = iZulu / 3600
+    local time = Fg.TimeFromAbsSeconds(Fg.TimeToZulu())
+    local iZuluHoursSinceMidnight = time.Hour
     local sLetter = string.char(math.floor(iZuluHoursSinceMidnight) + string.byte("A"))
 
     LogDebug("Zulu hours=" .. iZuluHoursSinceMidnight .. " - Letter=" .. sLetter)
@@ -562,45 +627,3 @@ function FgAtis.GetCurrentAtisStringNearest(mooseGroup)
 	local mooseAirbase = Fg.GetNearestAirbase(mooseGroup)
 	return FgAtis.GetCurrentAtisString(mooseAirbase.AirbaseName)
 end
-
----------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------
----  TEST CODE FOR FUTURE REFERENCE
----------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------
---[[
-TESTS
-
-local mooseAirbase = AIRBASE:FindByName(AIRBASE.Syria.Beirut_Rafic_Hariri)
-local iLandHeight = mooseAirbase:GetCoordinate():GetLandHeight()
-
-local weather = FgWeather:Create(mooseAirbase:GetCoordinate())
-LogInfo(weather:ToString())
-LogInfo(veaf.weatherReport(mooseAirbase:GetVec3(), nil, false))
-
-local function PrintWind(vec3, iAlt)
-	vec3.y = iAlt
-	local wind = atmosphere.getWind(vec3)	
-	local str = math.sqrt(wind.x^2 + wind.z^2)
-	LogInfo("Wind " .. UTILS.MetersToFeet(iAlt) .. " x=".. wind.x .." z=".. wind.z .." y=".. wind.y .. " str=" .. str .. " ms | " .. UTILS.MpsToKnots(str) .. " kts")
-end
-
-local vec3 = mooseAirbase:GetCoordinate():GetVec3()
-PrintWind(vec3, 0)
-PrintWind(vec3, UTILS.FeetToMeters (33))
-PrintWind(vec3, iLandHeight)
-PrintWind(vec3, iLandHeight+1)
-PrintWind(vec3, UTILS.FeetToMeters (1600))
-PrintWind(vec3, UTILS.FeetToMeters (6600))
-PrintWind(vec3, UTILS.FeetToMeters (26000))
-
---
-for _, abName in pairs (AIRBASE.Syria) do
-	local ab = AIRBASE:FindByName(abName)
-    LogInfo(ab.AirbaseName)
-	local weather = FgWeather:Create(ab:GetCoordinate())
-	--LogInfo(weather:ToStringMetar())	
-	LogInfo(weather:ToStringAtis())	
-end
-
-]]

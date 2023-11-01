@@ -4,7 +4,6 @@ Management of a timed navigation based on named units in the mission editor
 Requires :
 - Moose 
 - FgTools
-- FgWeather
 
 TODO
 - Better menu management (remove unused)
@@ -32,15 +31,18 @@ local Debug = (Fg.LogLevel >= Fg.LogLevels.Debug)
 FgTnTools = {}
 
 function FgTnTools.OutTextForGroup(mooseGroup, sText)
-	trigger.action.outTextForGroup(mooseGroup:GetDCSObject():getID(), sText, 45, false)
+	trigger.action.outTextForGroup(mooseGroup:GetDCSObject():getID(), sText, 59, false)
 	if (Debug) then
-		trigger.action.outText(mooseGroup.GroupName .. " DEBUG > " .. sText, 45, false)
+		trigger.action.outText(mooseGroup.GroupName .. " DEBUG > " .. sText, 59, false)
 	end
 end
 
 ---------------------------------------------------------------------------------------------------
 ---  Marks
 function FgTnTools.CreateMark(mooseZone, sText, mooseGroup)
+	LogDebug("Mark for " ..mooseGroup.GroupName)
+	LogDebug(sText)
+
 	local vec = mooseZone:GetVec3()
 	local iMarkId = UTILS.GetMarkID()
 	trigger.action.markToGroup(iMarkId, sText, vec, mooseGroup:GetDCSObject():getID(), true, nil)
@@ -65,10 +67,11 @@ function FgTnTools.GetRandomSpeedMs (mooseGroup)
 	return iSpeedMs -- m/s
 end
 
-function FgTnTools.GetTimeOfFlightS(mooseGroup, mooseCoordTo, iSpeed)
+function FgTnTools.GetTimeOfFlightS(mooseGroup, mooseCoordTo, iSpeed, iAdditionalTime)
+	iAdditionalTime = iAdditionalTime or 0
 	local mooseCoordFrom = mooseGroup:GetCoordinate()
 	local iDistance = mooseCoordFrom:Get2DDistance(mooseCoordTo) -- Distance in meters
-	return 60 + iDistance / iSpeed -- seconds + add time to scout current point
+	return 60 + iAdditionalTime + iDistance / iSpeed -- seconds
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -99,7 +102,7 @@ end
 ---------------------------------------------------------------------------------------------------
 ---  FgTnWaypoint class
 ---  Waypoints based on a unit group in the mission editor
----  Units in the editor must be named NAVWP_[stage]_[waypoint description] - ex NAVWP_1_Kobuleti will create a waypoint at stage 1 named Kobuleti
+---  Units in the editor must be named NAVWP_[stage]_[waypoint label] - ex NAVWP_1_Kobuleti will create a waypoint at stage 1 named Kobuleti
 ---  Stages are used to order the waypoints. If multiple wayoints are on the same stage one will be chosen at random
 ---  Additional description can be specified for a waypoint, using a parameter when initializing the waypoint list
 ---------------------------------------------------------------------------------------------------
@@ -115,7 +118,9 @@ function FgTnWaypoint:Create(iStage, mooseZone, sLabel)
 		MooseZone = mooseZone, -- dynamically generated zone representing the waypoint
 		Altitude = 0,
 		Label = sLabel, -- name of the waypoint, based on the dcs group name
-		AdditionalInfo = nil, -- additional description can be specified if the label is not enough
+		Description = nil, -- additional description can be specified if the label is not enough
+		AdditionalAction = nil,
+		AdditionalTime = 0,
 		Localisation = nil -- description of the center coordinates
 	}
 		
@@ -150,7 +155,7 @@ end
 function FgTnWaypoint:ToString()
 	local sZone = "-no zone-"
 	if (self.MooseZone) then sZone = self.MooseZone.ZoneName end
-	return "Stage=" .. self.Stage .. " Zone=" .. sZone .. " Alt=" .. self.Altitude .." Label=" .. self.Label
+	return "Stage=" .. self.Stage .. " Zone=" .. sZone .. " Alt=" .. self.Altitude .. " Label=" .. self.Label .. " Additional time=" .. self.AdditionalTime
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -181,15 +186,23 @@ function FgTnWaypointList.AddWaypoint(wp)
 	end
 end
 
-function FgTnWaypointList.Initialize(sStartZoneName, iWpZoneRadius, iLastStage, destinations, iRefuelEndStage, sRefuelEndZoneName, additionalInfos)
+function FgTnWaypointList.Initialize(parameters)
 	LogInfo("Initializing waypoint list")
-	LogDebug("  sStartZoneName=" .. veaf.p(sStartZoneName))
-	LogDebug("  iWpZoneRadius=" .. veaf.p(iWpZoneRadius))
-	LogDebug("  iLastStage=" .. veaf.p(iLastStage))
-	LogDebug("  destinations=" .. veaf.p(destinations))
-	LogDebug("  iRefuelEndStage=" .. veaf.p(iRefuelEndStage))
-	LogDebug("  sRefuelEndZoneName=" .. veaf.p(sRefuelEndZoneName))
-	LogDebug("  additionalInfos=" .. veaf.p(additionalInfos))
+
+	local sStartZoneName = parameters.StartZoneName or "FgTnStartZone"
+	local iWpZoneRadius = parameters.WpZoneRadius or 2500
+	local iLastStage = parameters.LastStage or nil
+	local destinations = parameters.Destinations or {}
+	local iRefuelEndStage = parameters.RefuelEndStage or nil
+	local sRefuelEndZoneName = parameters.RefuelEndZoneName or nil
+	local additionalData = parameters.AdditionalData or nil
+
+	LogDebug("  sStartZoneName=" .. Fg.ToString(sStartZoneName))
+	LogDebug("  iWpZoneRadius=" .. Fg.ToString(iWpZoneRadius))
+	LogDebug("  iLastStage=" .. Fg.ToString(iLastStage))
+	LogDebug("  destinations=" .. Fg.ToString(destinations))
+	LogDebug("  iRefuelEndStage=" .. Fg.ToString(iRefuelEndStage))
+	LogDebug("  sRefuelEndZoneName=" .. Fg.ToString(sRefuelEndZoneName))
 
 	FgTnWaypointList.StartZone = ZONE:FindByName(sStartZoneName)
 	FgTnWaypointList.LastStage = iLastStage
@@ -198,9 +211,12 @@ function FgTnWaypointList.Initialize(sStartZoneName, iWpZoneRadius, iLastStage, 
 		for __, dcsGroup in pairs(coalition.getGroups(iCoalition)) do
 			local wp = FgTnWaypoint:CreateFromDscGoup(dcsGroup, iWpZoneRadius)
 			if (wp) then
-				if (additionalInfos and additionalInfos[wp.Label]) then
-					wp.AdditionalInfo = additionalInfos[wp.Label]
+				if (additionalData and additionalData[wp.Label]) then
+					wp.Description = additionalData[wp.Label].Description
+					wp.AdditionalAction = additionalData[wp.Label].AdditionalAction
+					wp.AdditionalTime = additionalData[wp.Label].AdditionalTime or 0
 				end
+
 				FgTnWaypointList.AddWaypoint (wp)
 			end
 			
@@ -218,7 +234,7 @@ function FgTnWaypointList.Initialize(sStartZoneName, iWpZoneRadius, iLastStage, 
 		local refuelEndMooseZone = ZONE:FindByName(sRefuelEndZoneName)
 		if (refuelEndMooseZone) then
 			FgTnWaypointList.RefuelWaypoint = FgTnWaypoint:Create(iRefuelEndStage, refuelEndMooseZone, "Refuel end")
-			FgTnWaypointList.RefuelWaypoint.AdditionalInfo = "Navigate here when you are done with the refuel phase, or just skip to the next waypoint."
+			FgTnWaypointList.RefuelWaypoint.Description = "Navigate here when you are done with the refuel phase, or just skip to the next waypoint."
 		end
 	end
 
@@ -235,8 +251,8 @@ function FgTnWaypointList.ToString()
 		sString = sString .. "\n  Stage=" .. iStage
 		for _, wp in pairs(stageWps) do
 			sString = sString .. "\n    " .. wp:ToString()
-			if (wp.AdditionalInfo) then
-				sString = sString .. "\n      " .. wp.AdditionalInfo
+			if (wp.Description) then
+				sString = sString .. "\n      " .. wp.Description
 			end
 		end
 	end
@@ -316,12 +332,13 @@ function FgTnLeg:ToString()
 	return "MooseGroup=" .. self.MooseGroup.GroupName .. " - WaypointTo=" .. sWpTo .. " - TimeTo=".. Fg.TimeToString(self.TimeTo) .. " - Speed=" .. UTILS.MpsToKnots(self.Speed) .. " kts - MarkId=" .. self.MarkId
 end
 
-function FgTnLeg:GetMessage(bWithLocalisation)
+function FgTnLeg:GetMessage(bWithDescription, bWithLocalisation)
+	LogDebug ("GetMessage - bWithDescription=" .. Fg.ToString(bWithDescription) .. " - bWithLocalisation=" .. Fg.ToString(bWithLocalisation))
 	local sMessage = "No destination"
 	if (self.WaypointTo) then
 		sMessage = self.WaypointTo.Label
-		if (self.WaypointTo.AdditionalInfo) then
-			sMessage = sMessage .. "\n" .. self.WaypointTo.AdditionalInfo
+		if (bWithDescription and self.WaypointTo.Description) then
+			sMessage = sMessage .. "\n" .. self.WaypointTo.Description
 		end
 		if (bWithLocalisation and self.WaypointTo.Localisation) then
 			sMessage = sMessage .. "\n\n" .. self.WaypointTo.Localisation
@@ -344,7 +361,7 @@ end
 
 function FgTnLeg:CreateMark()
 	if (self.WaypointTo) then
-		self.MarkId = FgTnTools.CreateMark(self.WaypointTo.MooseZone, self:GetMessage(true), self.MooseGroup)
+		self.MarkId = FgTnTools.CreateMark(self.WaypointTo.MooseZone, self:GetMessage(false, false), self.MooseGroup)
 	else
 		self.MarkId = 0
 	end
@@ -364,7 +381,7 @@ function FgTnLeg:UpdateLegTime()
 		
 	if (self.WaypointTo) then
 		if (FgTnWaypointList.RefuelWaypoint == nil or self.WaypointTo ~= FgTnWaypointList.RefuelWaypoint) then
-			local iTimeOfFlightS = FgTnTools.GetTimeOfFlightS(self.MooseGroup, self.WaypointTo.MooseZone:GetCoordinate(), self.Speed)
+			local iTimeOfFlightS = FgTnTools.GetTimeOfFlightS(self.MooseGroup, self.WaypointTo.MooseZone:GetCoordinate(), self.Speed, self.WaypointTo.AdditionalTime)
 			
 			local oTime = Fg.TimeFromAbsSeconds(timer.getAbsTime() + iTimeOfFlightS, Fg.TimePrecisions.Minute)
 			self.TimeTo = Fg.TimeToAbsSeconds(oTime)
@@ -393,7 +410,8 @@ end
 ---------------------------------------------------------------------------------------------------
 FgTnLegList =
 {
-	MenuNav = {}
+	MenuNav = {},
+	EndingAction = nil
 }
 
 ---------------------------------------------------------------------------------------------------
@@ -410,16 +428,9 @@ local function ActiveLegInfo(sGroupName)
 	LogDebug("ActiveLegInfo - " .. sGroupName)
 	local leg = FgTnLegList[sGroupName]
 	if (leg) then
-		leg:OutTextForGroup(leg:GetMessage(true))
+		leg:OutTextForGroup(leg:GetMessage(true, true))
 	end
 end
-
--- local function AtisOnNearest(sGroupName)
--- 	LogDebug("AtisOnNearest - " .. sGroupName)
--- 	local mooseGroup = GROUP:FindByName(sGroupName)
--- 	local sAtis = FgAtis.GetCurrentAtisStringNearest(mooseGroup)
--- 	FgTnTools.OutTextForGroup(mooseGroup, sAtis)
--- end
 
 function FgTnLegList.GetGroupMenu(mooseGroup)
 	if (FgTnLegList.MenuNav == nil) then
@@ -446,14 +457,20 @@ function FgTnLegList.GetActiveLeg(mooseGroup)
 end
 
 function FgTnLegList.EndNavigation(leg)
-	local zoneAirbase = FgTnWaypointList.Destinations[math.random(#FgTnWaypointList.Destinations)]
+	if (FgTnWaypointList.Destinations and #FgTnWaypointList.Destinations > 0) then
+		local zoneAirbase = FgTnWaypointList.Destinations[math.random(#FgTnWaypointList.Destinations)]
 	
-	local sAtis = FgAtis.GetCurrentAtisString(zoneAirbase.ZoneName)
-	leg.markId = nil--FgTnTools.CreateMark(zoneAirbase, sAtis, leg.MooseGroup)
-	leg:OutTextForGroup("Navigation terminated\nYour final destination for landing is " .. zoneAirbase.ZoneName)
-	leg:OutTextForGroup(sAtis)
+		leg.markId = nil
+		leg:OutTextForGroup("Navigation terminated\nYour final destination for landing is " .. zoneAirbase.ZoneName)
 
-	FgTnTools.TaskGroupToLand(leg.MooseGroup, zoneAirbase, UTILS.MpsToKmph(leg.Speed), leg.MooseGroup:GetHeight())
+		FgTnTools.TaskGroupToLand(leg.MooseGroup, zoneAirbase, UTILS.MpsToKmph(leg.Speed), leg.MooseGroup:GetHeight())
+	end
+	
+	if (FgTnLegList.EndingAction) then
+		LogDebug("Executing ending action")
+		FgTnLegList.EndingAction(leg.MooseGroup)
+	end
+
 	leg.State = LegState.Ended		
 end
 
@@ -462,27 +479,35 @@ function FgTnLegList.AdvanceLeg(leg, bSkip)
 	
 	LogInfo("AdvanceLeg - " .. leg.MooseGroup.GroupName .. " in destination zone [" .. leg.WaypointTo.MooseZone.ZoneName .. "]")
 	if (not bSkip) then
-		leg:OutTextForGroup("Destination reached: \n" .. leg:GetMessage(false))
+		leg:OutTextForGroup("Destination reached: \n" .. leg:GetMessage(true, false))
 	
 		-- check the timing, and prepare the next leg
 		local timeAbs = timer.getAbsTime()
 		local timeTolerance = 45 -- seconds
-		
+		local onTime = nil
+
 		if (leg.TimeTo and leg.TimeTo > 0) then
 			local legTime = leg.TimeTo - timeAbs
 			if (legTime < -timeTolerance) then
+				onTime = 1
 				leg:OutTextForGroup ("You are LATE")
-				leg:FlareZone(FLARECOLOR.Red)
+				--leg:FlareZone(FLARECOLOR.Red)
 			elseif (legTime > timeTolerance) then
+				onTime = -1
 				leg:OutTextForGroup ("You are EARLY")
-				leg:FlareZone(FLARECOLOR.Red )
+				--leg:FlareZone(FLARECOLOR.Red )
 			else -- on time
+				onTime = 0
 				leg:OutTextForGroup ("You are ON TIME")
-				leg:FlareZone(FLARECOLOR.Green)
+				--leg:FlareZone(FLARECOLOR.Green)
 			end		
 		else
-			leg:FlareZone(FLARECOLOR.White)
+			--leg:FlareZone(FLARECOLOR.White)
 		end
+
+		if (leg.WaypointTo.AdditionalAction) then
+			leg.WaypointTo.AdditionalAction(leg.MooseGroup, onTime)
+		end	
 	end
 
 	leg.WaypointTo = FgTnWaypointList.GetNextWaypoint(leg.WaypointTo)
@@ -493,10 +518,10 @@ function FgTnLegList.AdvanceLeg(leg, bSkip)
 		leg:TaskGroupToLeg()
 		
 		LogInfo("AdvanceLeg - " .. leg.MooseGroup.GroupName .. " next leg - " .. leg:ToString())
-		leg:OutTextForGroup("Next waypoint (mark created): \n" .. leg:GetMessage(true))
+		leg:OutTextForGroup("Next waypoint (mark created): \n" .. leg:GetMessage(true, true))
 	else
+		LogInfo("AdvanceLeg - " .. leg.MooseGroup.GroupName .. " no next wp found, ending navigation")
 		FgTnLegList.EndNavigation(leg)
-	LogInfo("AdvanceLeg - " .. leg.MooseGroup.GroupName .. " no next wp found, ending navigation")
 	end
 end
 
@@ -513,7 +538,7 @@ function FgTnLegList.AdvanceLegInitial(leg)
 		MENU_GROUP_COMMAND:New(leg.MooseGroup, "Skip active leg", groupMenuNav, SkipActiveLeg, leg.MooseGroup.GroupName)
 
 		LogInfo("AdvanceLegInitial - " .. leg.MooseGroup.GroupName .. " first leg=[" .. leg:ToString() .. "]")
-		leg:OutTextForGroup("First waypoint (mark created): \n" .. leg:GetMessage(true))
+		leg:OutTextForGroup("First waypoint (mark created): \n" .. leg:GetMessage(true, true))
 	else
 		LogInfo("AdvanceLegInitial - " .. leg.MooseGroup.GroupName .. " no first wp found at stage 0")
 		FgTnLegList.EndNavigation(leg)
@@ -524,13 +549,11 @@ function FgTnLegList.CheckActiveLeg(mooseGroup)
 	local leg = FgTnLegList.GetActiveLeg(mooseGroup)
 	
 	if (leg.State == LegState.NotStarted) then
-		--if (mooseGroup:IsPartlyInZone(FgTnWaypointList.StartZone) or mooseGroup:IsCompletelyInZone(FgTnWaypointList.StartZone)) then
 		if (mooseGroup:IsPartlyOrCompletelyInZone(FgTnWaypointList.StartZone)) then
 			FgTnLegList.AdvanceLegInitial(leg)
 		end
 	elseif(leg.State == LegState.InProgress) then
-		--if (leg.WaypointTo and (mooseGroup:IsPartlyInZone(leg.WaypointTo.MooseZone) or mooseGroup:IsCompletelyInZone(leg.WaypointTo.MooseZone))) then
-			if (mooseGroup:IsPartlyOrCompletelyInZone(leg.WaypointTo.MooseZone)) then
+		if (mooseGroup:IsPartlyOrCompletelyInZone(leg.WaypointTo.MooseZone)) then
 			FgTnLegList.AdvanceLeg(leg)
 		end
 	end
@@ -545,7 +568,6 @@ end
 FgTn =
 {
     NavGroupNames = nil,
-	--RegisteredGroupNames = {},
     Scheduler = nil
 }
 
@@ -553,11 +575,6 @@ function FgTn.CheckActiveGroups()
 	for _, sGroupName in pairs(FgTn.NavGroupNames) do
        	local mooseGroup = GROUP:FindByName(sGroupName)
 		if (mooseGroup) then
-			-- if(FgTn.RegisteredGroupNames[sGroupName] == nil) then
-			-- 	local groupMenuNav = FgTnLegList.GetGroupMenu(mooseGroup)
-			-- 	MENU_GROUP_COMMAND:New(mooseGroup, "ATIS ", groupMenuNav, AtisOnNearest, mooseGroup.GroupName)
-			-- end
-
 			FgTnLegList.CheckActiveLeg(mooseGroup)
 		else
 			LogDebug("CheckActiveGroups - group not found - " .. sGroupName)
@@ -565,9 +582,11 @@ function FgTn.CheckActiveGroups()
 	end
 end
 
-function FgTn.Start(navGroupNames, sStartZoneName, iWpZoneRadius, iLastStage, destinations, iRefuelEndStage, sRefuelEndZoneName, additionalInfos)
-    FgTn.NavGroupNames = navGroupNames
-    FgTnWaypointList.Initialize(sStartZoneName, iWpZoneRadius, iLastStage, destinations, iRefuelEndStage, sRefuelEndZoneName, additionalInfos)
+function FgTn.Start(parameters)
+    FgTn.NavGroupNames = parameters.NavGroupNames
+	FgTnLegList.EndingAction = parameters.EndingAction
+
+    FgTnWaypointList.Initialize(parameters)
 	
     if (FgTn.Scheduler) then
         LogInfo("Stop nav scheduler")

@@ -10,15 +10,6 @@
     }
   ],
   "targets": [
-    {
-      "version": "morning-real",
-      "realweather": true,
-      "moment": "morning"
-    },
-    {
-      "version": "evening-broken",
-      "weatherfile": "broken-1.lua",
-      "moment": "evening"
-    }
+    
   ]
 }
