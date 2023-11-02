@@ -100,7 +100,12 @@ FgRfg.Generate(coalition.side.BLUE, math.random(2, 3), parameters)
 ---------------------------------------------------------------------------------------------------
 local tnParameters = 
 {
-	NavGroupNames = { "Astro-Hawg", "Nickel-Tusk(hot)", "Archer-Uzi", "Arctic-Colt(hot)", "Tester-A10", "Tester-F18" },
+	NavGroupNames =
+	{
+		"A10-Hawg", "A10-Pig", "A10-Tusk(hot)",
+		"F18-Uzi", "F18-Hornet", "F18-Colt(hot)",
+		"Tester-A10", "Tester-F18"
+	},
 	EndingAction = nil,
 	StartZoneName = "Start zone",
 	WpZoneRadius = 2500,
@@ -111,24 +116,24 @@ local tnParameters =
 	AdditionalData =
 	{
 		--0
-		["Minakh airbase"] = "High value transport reported to depart from the airbase by helicopter.",
-		["Al-Rai town"] = "Ground personnel are reported to stock military equipment in the city center.",
+		["Minakh airbase"] = { Description = "High value transport reported to depart from the airbase by helicopter." },
+		["Al-Rai town"] = { Description = "Ground personnel are reported to stock military equipment in the city center." },
 		--1
-		["Salt lake parking"] = "Large concentration of military equipment parked in a dry area of the lake.",
-		["Jirah dam"] = "Small armed boats anchored in the river near the dam.",
-		["Military research base"] = "Some kind of radar equipement has been installed on the site.",
+		["Salt lake parking"] = { Description = "Large concentration of military equipment parked in a dry area of the lake." },
+		["Jirah dam"] = { Description = "Small armed boats anchored in the river near the dam." },
+		["Military research base"] = { Description = "Some kind of radar equipement has been installed on the site." },
 		--2
-		["Desert FARP"] = "Military helicopter FARP installed along a dirt road.",
-		["Suruj roadblock"] = "A roadblock installed in the middle of the town of Suruj.",
-		["Wadi Shatnat"] = "SAM site in the desert near the wadi.",
+		["Desert FARP"] = { Description = "Military helicopter FARP installed along a dirt road." },
+		["Suruj roadblock"] = { Description = "A roadblock installed in the middle of the town of Suruj." },
+		["Wadi Shatnat"] = { Description = "SAM site in the desert near the wadi." },
 		--3
-		["Tartus port"] = "Attack submarines spotted in the commercial port.",
-		["Jihar industrial zone"] = "Chemical tanks and processing facility.",
-		["Homs highway"] = "Artillery units stopped alongside the highway.",
+		["Tartus port"] = { Description = "Attack submarines spotted in the commercial port." },
+		["Jihar industrial zone"] = { Description = "Chemical tanks and processing facility." },
+		["Homs highway"] = { Description = "Artillery units stopped alongside the highway." },
 		--4
-		["Dark rock"] = "Oil derricks on top of the mountain.",
-		["Kiryat"] = "Airshow on the airfield.",
-		["As Sawara"] = "Forest fire east of the town."
+		["Dark rock"] = { Description = "Oil derricks on top of the mountain." },
+		["Kiryat"] = { Description = "Airshow on the airfield." },
+		["As Sawara"] = { Description = "Forest fire east of the town." }
 	}
 }
 -----------------------
