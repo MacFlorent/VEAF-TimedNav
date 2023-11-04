@@ -98,6 +98,10 @@
                 {
                   "Id": 24,
                   "AirbaseType": 1
+                },
+                {
+                  "Id": 12,
+                  "AirbaseType": 1
                 }
               ],
               "SelectedColumns": [
@@ -128,6 +132,12 @@
             {
               "Guid": "7adfa239-9eca-44f4-817c-ecfda2e00c17",
               "PartType": 3
+            },
+            {
+              "Header": "",
+              "ImagePath": "\\title.png",
+              "Guid": "1e6e7ebe-8daf-4c41-a1be-44e5d7150145",
+              "PartType": 8
             }
           ],
           "MapData": {

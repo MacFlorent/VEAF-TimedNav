@@ -5606,15 +5606,9 @@ mission = {
                                                 [1] = {
                                                     ["CLSID"] = "ALQ_184",
                                                 }, -- end of [1]
-                                                [5] = {
-                                                    ["CLSID"] = "",
-                                                }, -- end of [5]
                                                 [6] = {
                                                     ["CLSID"] = "MXU-648-TP",
                                                 }, -- end of [6]
-                                                [7] = {
-                                                    ["CLSID"] = "",
-                                                }, -- end of [7]
                                                 [10] = {
                                                     ["CLSID"] = "{A111396E-D3E8-4b9c-8AC9-2432489304D5}",
                                                 }, -- end of [10]
@@ -5820,15 +5814,9 @@ mission = {
                                                 [1] = {
                                                     ["CLSID"] = "{6D21ECEA-F85B-4E8D-9D51-31DC9B8AA4EF}",
                                                 }, -- end of [1]
-                                                [5] = {
-                                                    ["CLSID"] = "",
-                                                }, -- end of [5]
                                                 [6] = {
                                                     ["CLSID"] = "MXU-648-TP",
                                                 }, -- end of [6]
-                                                [7] = {
-                                                    ["CLSID"] = "",
-                                                }, -- end of [7]
                                                 [10] = {
                                                     ["CLSID"] = "{A111396E-D3E8-4b9c-8AC9-2432489304D5}",
                                                 }, -- end of [10]
@@ -10671,7 +10659,7 @@ mission = {
             [1] = 81,
         }, -- end of ["red"]
     }, -- end of ["coalitions"]
-    ["currentKey"] = 252857,
+    ["currentKey"] = 253603,
     ["date"] = {
         ["Day"] = 21,
         ["Month"] = 5,
@@ -21807,12 +21795,13 @@ mission = {
         }, -- end of ["roles"]
     }, -- end of ["groundControl"]
     ["map"] = {
-        ["centerX"] = 221481.84761334,
-        ["centerY"] = -35074.472978688,
-        ["zoom"] = 4300.9747303588,
+        ["centerX"] = -15000,
+        ["centerY"] = 75003.646973012,
+        ["zoom"] = 1659372.7206419,
     }, -- end of ["map"]
-    ["maxDictId"] = 43,
+    ["maxDictId"] = 44,
     ["pictureFileNameB"] = {
+        [1] = "ResKey_ImageBriefing_44",
     }, -- end of ["pictureFileNameB"]
     ["pictureFileNameN"] = {
     }, -- end of ["pictureFileNameN"]

@@ -34,4 +34,5 @@ mapResource = {
     ["ResKey_Action_37"] = "FgRfg.lua",
     ["ResKey_Action_40"] = "FgWeather.lua",
     ["ResKey_Action_42"] = "HoundElint.lua",
+    ["ResKey_ImageBriefing_44"] = "title.png",
 } -- end of mapResource
