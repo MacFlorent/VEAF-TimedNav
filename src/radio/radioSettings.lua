@@ -7,26 +7,26 @@
 radioPresets =
 {
     -- radio 1 : left radio, red radio, UHF radio
-    ["##RADIO1_01##"] = 243.000,
-    ["##RADIO1_02##"] = 360.100, -- Incirlik
-    ["##RADIO1_03##"] = 251.000, -- Adana
-    ["##RADIO1_04##"] = 250.050, -- Gaziantep
-    ["##RADIO1_05##"] = 250.250, -- Hatay
-    ["##RADIO1_06##"] = 251.200, -- Rene Mouawad
-    ["##RADIO1_07##"] = 251.800, -- Beirut
-    ["##RADIO1_08##"] = 250.150, -- Haifa
-    ["##RADIO1_09##"] = 251.050, -- Ramat
-    ["##RADIO1_10##"] = 250.700, -- Meggido
-    ["##RADIO1_11##"] = 250.400, -- King Hussein
-    ["##RADIO1_12##"] = 250.100, -- H4
-    ["##RADIO1_13##"] = 282.200, -- Magic
-    ["##RADIO1_14##"] = 291.000, -- Package 1
-    ["##RADIO1_15##"] = 291.100, -- Package 2
-    ["##RADIO1_16##"] = 243.000, -- unused
-    ["##RADIO1_17##"] = 290.100, -- Texaco
-    ["##RADIO1_18##"] = 243.000, -- unused
-    ["##RADIO1_19##"] = 243.000, -- unused
-    ["##RADIO1_20##"] = 243.000, -- unused
+    ["##RADIO1_01##"] = 360.100, -- Incirlik
+    ["##RADIO1_02##"] = 251.050, -- Ramat David
+    ["##RADIO1_03##"] = 250.400, -- King Hussein
+    ["##RADIO1_04##"] = 250.700, -- Megiddo 
+    ["##RADIO1_05##"] = 350.500, -- Flight common
+    ["##RADIO1_06##"] = 290.100, -- Texaco
+    ["##RADIO1_07##"] = 251.800,
+    ["##RADIO1_08##"] = 250.150,
+    ["##RADIO1_09##"] = 251.050,
+    ["##RADIO1_10##"] = 250.700,
+    ["##RADIO1_11##"] = 250.400,
+    ["##RADIO1_12##"] = 250.100,
+    ["##RADIO1_13##"] = 282.200,
+    ["##RADIO1_14##"] = 291.000,
+    ["##RADIO1_15##"] = 291.100,
+    ["##RADIO1_16##"] = 243.000,
+    ["##RADIO1_17##"] = 290.100,
+    ["##RADIO1_18##"] = 243.000,
+    ["##RADIO1_19##"] = 243.000,
+    ["##RADIO1_20##"] = 243.000,
 
     -- radio 2 : right radio, green radio, V/UHF radio
     ["##RADIO2_01##"] = 121.500,

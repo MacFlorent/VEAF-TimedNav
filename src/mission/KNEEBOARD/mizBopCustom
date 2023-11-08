@@ -98,10 +98,6 @@
                 {
                   "Id": 24,
                   "AirbaseType": 1
-                },
-                {
-                  "Id": 12,
-                  "AirbaseType": 1
                 }
               ],
               "SelectedColumns": [
@@ -135,8 +131,8 @@
             },
             {
               "Header": "",
-              "ImagePath": "\\title.png",
-              "Guid": "1e6e7ebe-8daf-4c41-a1be-44e5d7150145",
+              "ImagePath": "\\examples.jpg",
+              "Guid": "5c28e911-6e89-412b-a122-6f8731c215e1",
               "PartType": 8
             }
           ],

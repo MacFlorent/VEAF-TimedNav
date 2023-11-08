@@ -13,17 +13,26 @@ dictionary = {
     ["DictKey_descriptionText_1"] = "In this mission you will have to fly a sequence of random waypoints while respecting required times on target.\
 This is only for reconnaissance. No engagement is authorized, no threats are reported.\
 \
-Multiple locations have to be observed. They will be assigned in sequence to your flight with a short description and a required time on target.\
+Multiple locations have to be observed. They will be assigned in sequence to your flight with coordinates, a short description, and a required time on target.\
 For each of these locations, you are to visually confirm the intel given and then move to the next one.\
 \
-Takeoff from Incirlik and go to WP#1 to get your first reconnaissance destination.\
-A pause in the mission flow after WP#3 will allow you to rejoin with Texaco if you need it.\
-Upon reaching the last location, you will be tasked to land at an airbase in Israel or Jordan.\
+- Takeoff from Incirlik and go to WP#1 [START]  to start the mission.\
+- Find the first four (4) targets as they are assigned to your flight.\
+- Rejoin with Texaco if needed, then go to WP#2 [REFUEL] to continue the mission.\
+- Reach the last assigned target.\
+- Go land at the required airfield.\
 \
-Have good flight.\
-\
-Texaco 290.1Mhz U17 - TCN55X\
 Additional options available in F10 menu: Timed navigation and Weather.\
-Check you kneeboard as well.",
+Check you kneeboard as well.\
+\
+Coms -\
+1 - Incirlik -- 360.100 Mhz\
+2 - Ramat David -- 251.050 Mhz\
+3 - King Hussein -- 250.400 Mhz\
+4 - Megiddo -- 250.700 Mhz\
+5 - Flight common -- 350.500 Mhz\
+6 - Texaco -- 290.100 Mhz\
+\
+",
     ["DictKey_sortie_5"] = "Timed navigation over Syria",
 } -- end of dictionary
