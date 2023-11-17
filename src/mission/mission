@@ -1307,7 +1307,7 @@ mission = {
                                 ["units"] = {
                                     [1] = {
                                         ["AddPropAircraft"] = {
-                                            ["SADL_TN"] = "01173",
+                                            ["SADL_TN"] = "0117",
                                             ["VoiceCallsignLabel"] = "CT",
                                             ["VoiceCallsignNumber"] = "11",
                                         }, -- end of ["AddPropAircraft"]
@@ -1516,7 +1516,7 @@ mission = {
                                     }, -- end of [1]
                                     [2] = {
                                         ["AddPropAircraft"] = {
-                                            ["SADL_TN"] = "02173",
+                                            ["SADL_TN"] = "0217",
                                             ["VoiceCallsignLabel"] = "PG",
                                             ["VoiceCallsignNumber"] = "12",
                                         }, -- end of ["AddPropAircraft"]
@@ -5557,7 +5557,7 @@ mission = {
                                 ["units"] = {
                                     [1] = {
                                         ["AddPropAircraft"] = {
-                                            ["SADL_TN"] = "01170",
+                                            ["SADL_TN"] = "0117",
                                             ["VoiceCallsignLabel"] = "TK",
                                             ["VoiceCallsignNumber"] = "11",
                                         }, -- end of ["AddPropAircraft"]
@@ -5766,7 +5766,7 @@ mission = {
                                     }, -- end of [1]
                                     [2] = {
                                         ["AddPropAircraft"] = {
-                                            ["SADL_TN"] = "02170",
+                                            ["SADL_TN"] = "0217",
                                             ["VoiceCallsignLabel"] = "TK",
                                             ["VoiceCallsignNumber"] = "12",
                                         }, -- end of ["AddPropAircraft"]
@@ -10660,7 +10660,7 @@ mission = {
             [1] = 81,
         }, -- end of ["red"]
     }, -- end of ["coalitions"]
-    ["currentKey"] = 267076,
+    ["currentKey"] = 270060,
     ["date"] = {
         ["Day"] = 21,
         ["Month"] = 5,
@@ -21796,9 +21796,9 @@ mission = {
         }, -- end of ["roles"]
     }, -- end of ["groundControl"]
     ["map"] = {
-        ["centerX"] = 226611.94486346,
-        ["centerY"] = 22028.434672079,
-        ["zoom"] = 75684.393730943,
+        ["centerX"] = 218966.82169497,
+        ["centerY"] = 31050.172612942,
+        ["zoom"] = 310948.42772961,
     }, -- end of ["map"]
     ["maxDictId"] = 44,
     ["pictureFileNameB"] = {
