@@ -4,5 +4,8 @@
 /setup_*.cmd
 package-lock.json
 cache/
-
+*.miz
+build-*.cmd
+extract-*.cmd
 configuration.json
+yarn.lock
