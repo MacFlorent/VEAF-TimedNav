@@ -102,8 +102,6 @@ local tnParameters =
 {
 	NavGroupNames =
 	{
-		"A10-Hawg", "A10-Pig", "A10-Tusk(hot)",
-		"F18-Uzi", "F18-Hornet", "F18-Colt(hot)",
 		"Tester-A10", "Tester-F18"
 	},
 	EndingAction = nil,
