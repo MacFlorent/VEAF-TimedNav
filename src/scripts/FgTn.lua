@@ -583,22 +583,42 @@ function FgTn.CheckActiveGroups()
 end
 
 function FgTn.Start(parameters)
-    FgTn.NavGroupNames = parameters.NavGroupNames
+	FgTn.NavGroupNames = parameters.NavGroupNames
+
+	-- build an array of human groups by name
+	local humanGroupsByName = {}
+	for name, unit in pairs(mist.DBs.humansByName) do
+		local group = mist.DBs.groupsById[unit.groupId]
+		if group then
+			local groupName = group.groupName
+			if groupName then
+				if not (humanGroupsByName[groupName]) then
+					humanGroupsByName[groupName] = group
+				end
+			end
+		end
+	end
+
+	-- build the list of human group names and add it to the NavGroupNames list
+	for groupName, _ in pairs(humanGroupsByName) do
+		table.insert(FgTn.NavGroupNames, groupName)
+	end
+	veaf.loggers.get(veaf.Id):info("FgTn.NavGroupNames=%s", veaf.p(FgTn.NavGroupNames))
+
 	FgTnLegList.EndingAction = parameters.EndingAction
 
-    FgTnWaypointList.Initialize(parameters)
-	
-    if (FgTn.Scheduler) then
-        LogInfo("Stop nav scheduler")
-        FgTn.Scheduler:Stop()
-     end
-     LogInfo("Start nav scheduler")
-     FgTn.Scheduler = SCHEDULER:New(nil, 
-     function()
-        FgTn.CheckActiveGroups()
-     end,
-     {},
-     1, 10
-     )
-     
+	FgTnWaypointList.Initialize(parameters)
+
+	if (FgTn.Scheduler) then
+		LogInfo("Stop nav scheduler")
+		FgTn.Scheduler:Stop()
+	end
+	LogInfo("Start nav scheduler")
+	FgTn.Scheduler = SCHEDULER:New(nil,
+		function()
+			FgTn.CheckActiveGroups()
+		end,
+		{},
+		1, 10
+	)
 end
