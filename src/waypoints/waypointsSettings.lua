@@ -18,6 +18,32 @@ waypoints =
         ["x"] = 75869,
         ["y"] = 48674,
     }, -- end of [BULLSEYE]
+    ["START"] = {
+        ["type"] = "Turning Point",
+        ["action"] = "Turning Point",
+        ["alt"] = 2430, -- 8000 ft
+        ["alt_type"] = "BARO",
+        ["ETA"] = 364.89432745775,
+        ["ETA_locked"] = false,
+        ["speed"] = 999,
+        ["speed_locked"] = true,
+        ["name"] = "START",
+        ["x"] = 211038,
+        ["y"] = 41192,
+    }, -- end of [START]
+    ["REFUEL"] = {
+        ["type"] = "Turning Point",
+        ["action"] = "Turning Point",
+        ["alt"] = 2430, -- 8000 ft
+        ["alt_type"] = "BARO",
+        ["ETA"] = 364.89432745775,
+        ["ETA_locked"] = false,
+        ["speed"] = 999,
+        ["speed_locked"] = true,
+        ["name"] = "REFUEL",
+        ["x"] = -114740,
+        ["y"] = 86388,
+    }, -- end of [REFUEL]
 }
 
 -- THIS IS THE TABLE OF flightPlan settings. 
@@ -34,7 +60,8 @@ settings =
 
         ["waypoints"] =
         {
-            --["BULLSEYE"] = "BULLSEYE",
+            ["START"] = "START",
+            ["REFUEL"] = "REFUEL",
         }, -- end of ["waypoints"]
     },
 
