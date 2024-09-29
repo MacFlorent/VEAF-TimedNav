@@ -1,5 +1,7 @@
 @echo off
 
+set SKIP_WEATHER=true
+
 set MISSION_NAME=VEAF-TimedNav
 echo.
 echo ----------------------------------------

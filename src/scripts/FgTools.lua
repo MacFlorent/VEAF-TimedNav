@@ -291,8 +291,6 @@ function Fg.GetCountryShortName(iId)
     end
 end
 
-
-
 function Fg.GetNearestAirbaseList(mooseGroup, iCount)
     local groupCoordinates = mooseGroup:GetCoordinate()
     local iMinDistance = nil
@@ -402,6 +400,32 @@ function Fg.FlareRunway(mooseAirbase, iMinDistance, flareColors, iRepetitions)
             end
         end, {}, 0, 1, nil, iRepetitions)     
     end
+end
+
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+---  Messages
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+function Fg.MessageForGroup(mooseGroup, sText, sSoundFile, iDelay)
+    -- https://crikk.com/text-to-speech/
+    -- https://ttsmp3.com/ai
+    if (mooseGroup == nil) then
+        Fg.LogError("MessageForGroup with no group")
+        return
+    end
+
+    iDelay = iDelay or 0
+    Fg.LogDebug("MessageForGroup, mooseGroup=" .. mooseGroup:GetName() .. " ; SoundFile=" .. Fg.ToString(sSoundFile) .. " ; Delay=" .. iDelay)
+
+    SCHEDULER:New(nil, function()
+        if (not Fg.IsNullOrEmpty(sText)) then
+            trigger.action.outTextForGroup(mooseGroup:GetDCSObject():getID(), sText, 59, false)
+        end
+        if (not Fg.IsNullOrEmpty(sSoundFile)) then
+            trigger.action.outSoundForGroup(mooseGroup:GetDCSObject():getID(), sSoundFile)
+        end
+    end, {}, iDelay)
 end
 
 ---------------------------------------------------------------------------------------------------

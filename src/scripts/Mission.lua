@@ -98,12 +98,11 @@ FgRfg.Generate(coalition.side.BLUE, math.random(2, 3), parameters)
 ---  Timed navigation
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
+local testGroupNames = { "Tester-A10", "Tester-F18" }
 local tnParameters = 
 {
-	NavGroupNames =
-	{
-		"Tester-A10", "Tester-F18"
-	},
+	NavGroupNames = testGroupNames,
+	NavGroupAddPlayers = true,
 	EndingAction = nil,
 	StartZoneName = "Start zone",
 	WpZoneRadius = 2500,
@@ -111,6 +110,12 @@ local tnParameters =
 	Destinations = {AIRBASE.Syria.Ramat_David, AIRBASE.Syria.King_Hussein_Air_College, AIRBASE.Syria.Megiddo},
 	RefuelEndStage = 4, -- this is the stage before which the refuel will take place. If refuel stage is 3, then the refuel will take place between stages 2 and 3
 	RefuelEndZoneName = "End refuel zone",
+	SoundFolder = "SOUNDS", -- optional, folder (in miz file) where the sound files are stored
+	SoundStart = "fgtn_start_02.ogg",
+	SoundComplete = "fgtn_complete.ogg",
+	SoundSuccess = "fgtn_success_01.ogg",
+	SoundFailure = "fgtn_failure_01.ogg",
+
 	AdditionalData =
 	{
 		--0
@@ -141,3 +146,12 @@ FgWeatherMenu.Start()
 
 LogInfo("Timed navigation initialization")
 FgTn.Start(tnParameters)
+
+if (Debug) then
+	for _, sTestGroupName in pairs(testGroupNames) do
+		local dcsGroup = Group.getByName(sTestGroupName)
+		if (dcsGroup) then
+			trigger.action.activateGroup(dcsGroup)
+		end
+	end
+end

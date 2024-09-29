@@ -70,10 +70,6 @@
           "HtmlFontSize": 16,
           "Parts": [
             {
-              "Guid": "a85f49ba-9ddd-4b87-bcc5-0fb0e0602063",
-              "PartType": 2
-            },
-            {
               "Weather": true,
               "Bullseye": false,
               "BullseyeWithDescription": false,
@@ -133,6 +129,12 @@
               "Header": "",
               "ImagePath": "\\examples.jpg",
               "Guid": "5c28e911-6e89-412b-a122-6f8731c215e1",
+              "PartType": 8
+            },
+            {
+              "Header": "",
+              "ImagePath": "\\examples2.jpg",
+              "Guid": "ada6dece-f36d-4960-bccd-1491d8d7c640",
               "PartType": 8
             }
           ],

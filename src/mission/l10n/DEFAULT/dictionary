@@ -7,33 +7,31 @@ dictionary = {
     ["DictKey_ActionText_10901"] = "return VEAF_DYNAMIC_MISSIONPATH==nil",
     ["DictKey_ActionText_25"] = "return VEAF_DYNAMIC_PATH~=nil",
     ["DictKey_ActionText_27"] = "return VEAF_DYNAMIC_PATH==nil",
-    ["DictKey_ActionText_43"] = "return VEAF_DYNAMIC_PATH~=nil",
     ["DictKey_descriptionBlueTask_3"] = "",
     ["DictKey_descriptionNeutralsTask_4"] = "",
     ["DictKey_descriptionRedTask_2"] = "",
     ["DictKey_descriptionText_1"] = "In this mission you will have to fly a sequence of random waypoints while respecting required times on target.\
 This is only for reconnaissance. No engagement is authorized, no threats are reported.\
 \
-Multiple locations have to be observed. They will be assigned in sequence to your flight with coordinates, a short description, and a required time on target.\
-For each of these locations, you are to visually confirm the intel given and then move to the next one.\
+Multiple locations have to be observed and will be assigned in sequence to your flight. For each one, a message will inform you of:\
+- The location coordinates\
+- A short description\
+- A required time on target.\
+A mark will be available on the F10 map as well.\
 \
+You are to visually confirm the intel given (maybe take a screenshot with your FLIR?) and then move to the next location.\
+\
+Mission flow:\
 - Takeoff from Incirlik and go to WP#1 [START]  to start the mission.\
 - Find the first four (4) targets as they are assigned to your flight.\
 - Rejoin with Texaco if needed, then go to WP#2 [REFUEL] to continue the mission.\
 - Reach the last assigned target.\
 - Go land at the required airfield.\
 \
-Additional options available in F10 menu: Timed navigation and Weather.\
-Check you kneeboard as well.\
-\
-Coms -\
-1 - Incirlik -- 360.100 Mhz\
-2 - Ramat David -- 251.050 Mhz\
-3 - King Hussein -- 250.400 Mhz\
-4 - Megiddo -- 250.700 Mhz\
-5 - Flight common -- 350.500 Mhz\
-6 - Texaco -- 290.100 Mhz\
-\
+Additional options available in F10 menu:\
+- Display info on the current leg\
+- Skip the current leg\
+- Weather information\
 ",
     ["DictKey_sortie_5"] = "Timed navigation over Syria",
 } -- end of dictionary
