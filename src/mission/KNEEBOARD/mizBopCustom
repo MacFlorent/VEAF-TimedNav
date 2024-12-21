@@ -70,13 +70,6 @@
           "HtmlFontSize": 16,
           "Parts": [
             {
-              "Weather": true,
-              "Bullseye": false,
-              "BullseyeWithDescription": false,
-              "Guid": "644d81b5-105a-445b-8f77-633e6c5d20cd",
-              "PartType": 10
-            },
-            {
               "Header": "",
               "Airbases": [
                 {

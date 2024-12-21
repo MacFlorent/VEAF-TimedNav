@@ -141,9 +141,6 @@ local tnParameters =
 }
 -----------------------
 
-LogInfo("Weather menu initialization")
-FgWeatherMenu.Start()
-
 LogInfo("Timed navigation initialization")
 FgTn.Start(tnParameters)
 

@@ -5,7 +5,7 @@ local scriptsToLoad =
 {
     "Moose.lua",
     "FgTools.lua",
-    "FgWeather.lua",
+    --"FgWeather.lua",
     "FgRfgDb.lua",
     "FgRfg.lua",
     "FgTn.lua",
