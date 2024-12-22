@@ -261,42 +261,14 @@ end
 -- configure CTLD 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 if ctld then
-    -- uncomment (and adapt) the following lines to enable CTLD, its commands and its radio menu
-    --[[
-    veaf.loggers.get(veaf.Id):info("init - ctld")
-    function configurationCallback()
-        veaf.loggers.get(veaf.Id):info("configuring CTLD for %s", veaf.config.MISSION_NAME)
-        -- do what you have to do in CTLD before it is initialized
-        -- ctld.hoverPickup = false
-        -- ctld.slingLoad = true
-      end
-    ctld.initialize(configurationCallback)
-    ]]
+    ctld.alreadyInitialized = true
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- configure CSAR
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 if csar then
-    -- uncomment (and adapt) the following lines to enable CSAR, its commands and its radio menu
-    --[[
-    veaf.loggers.get(veaf.Id):info("init - csar")
-    function configurationCallback()
-        veaf.loggers.get(veaf.Id):info("configuring CSAR for %s", veaf.config.MISSION_NAME)
-        -- do what you have to do in csar before it is initialized
-        -- csar.enableAllslots = false
-        -- csar.aircraftType = {} -- Type and limit
-        -- csar.aircraftType["SA342Mistral"] = 2
-        -- csar.aircraftType["SA342Minigun"] = 2
-        -- csar.aircraftType["SA342L"] = 2
-        -- csar.aircraftType["SA342M"] = 2
-        -- csar.aircraftType["UH-1H"] = 8
-        -- csar.aircraftType["Mi-8MT"] = 16
-        -- csar.useprefix    = true
-        -- csar.csarPrefix = { "helicargo", "MEDEVAC"}
-    end
-    csar.initialize(configurationCallback)
-    ]]
+    csar.alreadyInitialized = true
 end
 
 
